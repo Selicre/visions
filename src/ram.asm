@@ -37,8 +37,7 @@ OamPtr: skip $02            ; Pointer to the current OAM tile
 HiOamPtr: skip $02          ; Pointer to the high OAM table
 CachedRowPtr: skip $02      ; Pointer to the current cached row
 
-print "DP usage: "
-print hex(+) : +
+print "DP usage: $", hex(+) : +
 
 AsyncScratch = $0200
 AsyncStack = $02EF
@@ -60,6 +59,7 @@ OamPtrLast: skip $02        ; Pointer to last frame's OAM pointer (to fill garba
 OamOffsetX: skip $02        ; Offset X for draw routine
 OamOffsetY: skip $02        ; Offset Y for draw routine
 OamPropMask: skip $02       ; Mask to OR each property byte with
+OamFlipMask: skip $02       ; Mask to XOR each property byte with (for sprite flipping)
 
 ; level data stuff
 
@@ -75,6 +75,7 @@ HorizontalSeam: skip $02
 VerticalSeam: skip $02
 DmaQueueOffset: skip $02    ; Current offset into the DMA queue
 GfxBufferPtr: skip $02
+CurrentEntity: skip $02     ; ID of the entity currently being processed.
 
 
 base $0E00
@@ -84,15 +85,28 @@ LevelRows: skip $100        ; Offsets to the start of each row (max 128 blocks h
 ; Sprites
 
 base $1000
-!SpriteAmt = 16*2           ; Amount of bytes in sprite slots
+!EntityCount = 16*2                 ; Amount of bytes in sprite slots
 
-SpritePtr: skip !SpriteAmt
-SpritePtrBank: skip !SpriteAmt
-SpritePtrMode = SpritePtrBank+1     ; 
-SpritePosX: skip !SpriteAmt
-SpritePosY: skip !SpriteAmt
-SpriteSubPosX: skip !SpriteAmt
-SpriteSubPosY = SpriteSubPos+1
+EntityPtr: skip !EntityCount
+EntityPtrBank: skip !EntityCount
+EntityState = EntityPtrBank+1       ; SMW-like interaction state
+EntityPosX: skip !EntityCount
+EntityPosY: skip !EntityCount
+EntitySubPos: skip !EntityCount
+EntitySubPosX = EntitySubPos
+EntitySubPosY = EntitySubPos+1
+EntityVelX: skip !EntityCount
+EntityVelY: skip !EntityCount
+EntitySize: skip !EntityCount
+EntityWidth = EntitySize
+EntityHeight = EntitySize+1
+EntityRender: skip !EntityCount     ; flip flags
+EntityData0: skip !EntityCount
+EntityData1: skip !EntityCount
+EntityData2: skip !EntityCount
+EntityData3: skip !EntityCount
+print "Entity usage: $", hex(+) : +
+
 
 
 

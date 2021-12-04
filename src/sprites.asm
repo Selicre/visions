@@ -23,6 +23,17 @@
 
 
 DrawSpriteTilemap:
+    stz.b Scratch+4
+    lda.w OamFlipMask   ; get sprite flip
+    bit.w #$4000        ; horizontal flip?
+    beq +
+    lda $0004,x         ; load size
+    and #$00FF
+    asl #3              ; this is weird but it does the size offset thing
+    adc #$0008
+    sta.w Scratch+4
++
+.loop:
     lda $0001,x         ; load y
     %signext()
     clc : adc.w OamOffsetY
@@ -34,7 +45,16 @@ DrawSpriteTilemap:
 
     lda $0000,x         ; load x
     %signext()
+    pha
+    lda Scratch+4
+    beq +
+    lda 1,s
+    eor.w #$FFFF : inc
+    sta 1,s
++
+    pla
     clc : adc.w OamOffsetX
+    sec : sbc.w Scratch+4
     cmp #$FFF0
     bmi .next
     cmp #$0100
@@ -49,10 +69,21 @@ DrawSpriteTilemap:
 
     lda $0002,x         ; load props
     ora.w OamPropMask
+    eor.w OamFlipMask
     sta.b (OamPtr)
     inc.b OamPtr
     inc.b OamPtr
 
+    jsr HandleHiOam
+.next:
+    inx #5
+    dey
+    bne +
+    rtl
++
+    jmp .loop
+
+HandleHiOam:
     ; handle hioam (TODO; this kinda sucks)
 
     sep #$20            ; 8-bit mode
@@ -63,13 +94,13 @@ DrawSpriteTilemap:
     lda.w $0004,x       ; load size
     beq +
     ldx.w HiOamIndex
-    lda.w .ptr_to_s,x
+    lda.l .ptr_to_s,x
     tsb.b Scratch
 +
     lda.b Scratch+3     ; load high byte of x
     beq +               ; if non-zero, assume the x bit is set
     ldx.w HiOamIndex
-    lda.w .ptr_to_x,x
+    lda.l .ptr_to_x,x
     tsb.b Scratch
 +
     lda.b Scratch
@@ -86,23 +117,15 @@ DrawSpriteTilemap:
     stz.w HiOamIndex
     inc.b HiOamPtr
     sep #$20            ; TODO: better way to do this?
-    lda.w #$00
+    lda.b #$00
     sta.b (HiOamPtr)
     rep #$20
 +
-
-    .next:
-    inx #5
-    dey
-    bne +
-    rtl
-+
-    jmp DrawSpriteTilemap
+    rts
 .ptr_to_x:
     db $01, $04, $10, $40
 .ptr_to_s:
     db $02, $08, $20, $80
-
 
 ResetSprites:
     lda.w #OamBuffer
@@ -124,7 +147,6 @@ FillSprites:
     rts
 
 UploadSprites:
-    print hex(UploadSprites)
     sep #$20
     %oam_dma(0, OamBuffer, $0000, $0220)
     lda #$01

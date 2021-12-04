@@ -115,13 +115,14 @@ incsrc "gamemode.asm"
 incsrc "render.asm"
 incsrc "mappings.asm"
 
+incsrc "entity.asm"
+
 TestPal:
     incbin "../testpal.bin"
 TestLevelData:
     incbin "../level.data"
 
-print "Bank 0 usage: "
-print hex((+) - $808000) : +
+print "Bank 0 usage: $", hex((+) - $808000) : +
 
 ;; BANK 8 (Graphics)
 org $818000
@@ -131,4 +132,10 @@ TestGfx:
 SprGfx:
     incbin "../sprgfx.bin"
 
+;; BANK 2 (Sprites)
+org $828000
 
+incsrc "entity/debug.asm"
+
+org $82FFFF
+db $00

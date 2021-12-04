@@ -22,6 +22,8 @@ GamemodeLoad:
 
     lda.w #$0400-$100
     sta.w CamBoundaryRight
+    lda.w #$0400-$E0
+    sta.w CamBoundaryBottom
 
     lda.w #$0080
     sta.w LevelWidth
@@ -31,6 +33,16 @@ GamemodeLoad:
 
     lda.w #$0000
     sta.w VerticalSeam
+
+    lda.w #EntityDebugInit
+    sta.w EntityPtr
+    
+    lda.w #EntityDebugInit>>16
+    sta.w EntityPtrBank
+    lda.w #$0020
+
+    sta.w EntityPosX
+    sta.w EntityPosY
 
 
     ; Upload graphics
@@ -92,6 +104,30 @@ CoolTilemap:
     db $00, $10, $02, $00, $01
 
 GamemodeMain:
+    lda.w EntityPosX
+    sec : sbc.w #$0080
+    bpl +
+    lda #$0000
++
+    cmp.w CamBoundaryRight
+    bmi +
+    lda.w CamBoundaryRight
++
+    sta.b CamX
+
+    lda.w EntityPosY
+    sec : sbc.w #$0070
+    bpl +
+    lda #$0000
++
+    cmp.w CamBoundaryBottom
+    bmi +
+    lda.w CamBoundaryBottom
++
+    sta.b CamY
+
+
+if 0
     lda.w Joypad1Held
     bit.w #JOY_Left
     beq +
@@ -101,11 +137,6 @@ GamemodeMain:
     bpl +
     stz.b CamX
 +
-    lda.w Joypad1Held
-    bit.w #JOY_Right
-    beq +
-    lda.b CamX
-    clc : adc.w #$0010
     cmp.w CamBoundaryRight
     bmi ++
     lda.w CamBoundaryRight
@@ -128,6 +159,10 @@ GamemodeMain:
     clc : adc.w #$0010
     sta.b CamY
 +
+
+endif
+
+    jsr RunEntities
     ;       vhoopppc
     lda.w #%0011000000000000
     sta.w OamPropMask
@@ -139,9 +174,9 @@ GamemodeMain:
     sec : sbc.b CamY
     sta.w OamOffsetY
 
-    ldx.w #CoolTilemap
-    ldy.w #$0002
-    jsl DrawSpriteTilemap
+    ;ldx.w #CoolTilemap
+    ;ldy.w #$0002
+    ;jsl DrawSpriteTilemap
 
     ; Scrolling Y
     lda.b CamY
