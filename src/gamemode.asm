@@ -34,10 +34,10 @@ GamemodeLoad:
     lda.w #$0000
     sta.w VerticalSeam
 
-    lda.w #EntityDebugInit
+    lda.w #EntityPlayerInit
     sta.w EntityPtr
     
-    lda.w #EntityDebugInit>>16
+    lda.w #EntityPlayerInit>>16
     sta.w EntityPtrBank
     lda.w #$0020
 

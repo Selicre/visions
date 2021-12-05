@@ -135,7 +135,7 @@ SprGfx:
 ;; BANK 2 (Sprites)
 org $828000
 
-incsrc "entity/debug.asm"
+incsrc "entity/player.asm"
 print "Bank 2 usage: $", hex((+) - $828000) : +
 
 org $82FFFF

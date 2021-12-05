@@ -1,25 +1,24 @@
-;; Debug controller, to test collision and stuff
+;; Player controller, to test collision and stuff
 
-EntityDebugTilemap:
+EntityPlayerTilemap:
     ;db $00, $F0, $C6, $06, $01
     ;db $F8, $E8, $82, $04, $01
     ;db $F8, $F8, $A2, $04, $01
     db $F8, $F6, $A8, $04, $01
 
-EntityDebugInit:
-    lda.w #EntityDebug
+EntityPlayerInit:
+    lda.w #EntityPlayer
     sta.w EntityPtr,x
     lda.w #$0606
     sta.w EntitySize,x
 
 ; A counter that counts up when you have more than $240 speed.
-EntityDebug_p_meter = EntityData0
+EntityPlayer_p_meter = EntityData0
 ; Flag that determines whether the player has P-speed.
 ; Set when jumping off ground with p-speed, unset when on ground.
-EntityDebug_p_speed = EntityData0+1
-EntityDebug:
+EntityPlayer_p_speed = EntityData0+1
+EntityPlayer:
     phk : plb
-    wdm
 .handle_p_speed:
     ; if !(on_ground || p_speed) then decrement
     lda.w EntityCollide,x
@@ -229,7 +228,7 @@ if 0
 endif
 
 
-    ldx.w #EntityDebugTilemap
+    ldx.w #EntityPlayerTilemap
     ldy.w #$0001
     jsl DrawEntity
     rtl
