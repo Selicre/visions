@@ -22,6 +22,7 @@ RunEntities:
     rts
 
 DoCollision:
+    stz.w EntityCollide
     ; do X first
     jsr ApplySpeedX
     jsr DoLayerCollisionX
@@ -102,11 +103,15 @@ ResolveHCollision:
     sta.w EntityPosX,x
     sep #$20 : stz.w EntitySubPosX,x : rep #$20
     inc.b Scratch+6
+    lda.w EntityCollide,x
+    ora.w #$0002
+    sta.w EntityCollide,x
     rts
 ++
     ; do the same but to the right
     lda.b Scratch
     asl #3
+    dec
     sta.b Scratch+4
     lda.w EntityWidth,x
     and.w #$00FF
@@ -115,6 +120,9 @@ ResolveHCollision:
     sta.w EntityPosX,x
     sep #$20 : stz.w EntitySubPosX,x : rep #$20
     inc.b Scratch+6
+    lda.w EntityCollide,x
+    ora.w #$0001
+    sta.w EntityCollide,x
 +
     rts
 
@@ -178,7 +186,7 @@ ResolveVCollision:
     ; if not, clamp position
     lda.w EntityVelY,x
     bpl ++
-    ; if speed is negative, then push out to the right
+    ; if speed is negative, then push out to the bottom
     ; calculate the target position
     lda.b Scratch+2
     inc #2
@@ -190,19 +198,26 @@ ResolveVCollision:
     sta.w EntityPosY,x
     sep #$20 : stz.w EntitySubPosY,x : rep #$20
     inc.b Scratch+6
+    lda.w EntityCollide,x
+    ora.w #$0004
+    sta.w EntityCollide,x
     rts
 ++
-    ; do the same but to the right
+    ; do the same but to the top
     lda.b Scratch+2
     asl #3
+    dec
     sta.b Scratch+4
     lda.w EntityHeight,x
     and.w #$00FF
     eor.w #$FFFF : inc
     clc : adc.b Scratch+4
     sta.w EntityPosY,x
-    sep #$20 : stz.w EntitySubPosY,x : rep #$20
+    sep #$20 : lda.b #$F0 : sta.w EntitySubPosY,x : rep #$20
     inc.b Scratch+6
+    lda.w EntityCollide,x
+    ora.w #$0008
+    sta.w EntityCollide,x
 +
     rts
 

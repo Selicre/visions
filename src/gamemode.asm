@@ -104,27 +104,6 @@ CoolTilemap:
     db $00, $10, $02, $00, $01
 
 GamemodeMain:
-    lda.w EntityPosX
-    sec : sbc.w #$0080
-    bpl +
-    lda #$0000
-+
-    cmp.w CamBoundaryRight
-    bmi +
-    lda.w CamBoundaryRight
-+
-    sta.b CamX
-
-    lda.w EntityPosY
-    sec : sbc.w #$0070
-    bpl +
-    lda #$0000
-+
-    cmp.w CamBoundaryBottom
-    bmi +
-    lda.w CamBoundaryBottom
-+
-    sta.b CamY
 
 
 if 0
@@ -163,20 +142,6 @@ if 0
 endif
 
     jsr RunEntities
-    ;       vhoopppc
-    lda.w #%0011000000000000
-    sta.w OamPropMask
-    lda.w #$0080
-    sec : sbc.b CamX
-    sta.w OamOffsetX
-
-    lda.w #$0080
-    sec : sbc.b CamY
-    sta.w OamOffsetY
-
-    ;ldx.w #CoolTilemap
-    ;ldy.w #$0002
-    ;jsl DrawSpriteTilemap
 
     ; Scrolling Y
     lda.b CamY

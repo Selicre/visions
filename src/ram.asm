@@ -101,6 +101,7 @@ EntitySize: skip !EntityCount
 EntityWidth = EntitySize
 EntityHeight = EntitySize+1
 EntityRender: skip !EntityCount     ; flip flags
+EntityCollide: skip !EntityCount    ; bitfield of which blocks the entity is touching (udlr)
 EntityData0: skip !EntityCount
 EntityData1: skip !EntityCount
 EntityData2: skip !EntityCount
