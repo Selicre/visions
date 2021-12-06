@@ -80,6 +80,10 @@ CurrentEntity: skip $02     ; ID of the entity currently being processed.
 
 base $0E00
 DmaQueue: skip $100         ; Dma queue data (see dma_queue.asm)
+DmaQueueMode = DmaQueue
+DmaQueueAddr = DmaQueue+1
+DmaQueueDest = DmaQueue+4
+DmaQueueSize = DmaQueue+6
 LevelRows: skip $100        ; Offsets to the start of each row (max 128 blocks high)
 
 ; Sprites
@@ -102,6 +106,9 @@ EntityWidth = EntitySize
 EntityHeight = EntitySize+1
 EntityRender: skip !EntityCount     ; flip flags
 EntityCollide: skip !EntityCount    ; bitfield of which blocks the entity is touching (udlr)
+EntityPoseData: skip !EntityCount
+EntityPose = EntityPoseData
+EntityPoseTimer = EntityPose+1
 EntityData0: skip !EntityCount
 EntityData1: skip !EntityCount
 EntityData2: skip !EntityCount

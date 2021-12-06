@@ -138,5 +138,9 @@ org $828000
 incsrc "entity/player.asm"
 print "Bank 2 usage: $", hex((+) - $828000) : +
 
-org $82FFFF
-db $00
+org $838000
+PlayerGfx:
+    incbin "../player_gfx.bin"
+
+org $83FFFF
+    db $00
