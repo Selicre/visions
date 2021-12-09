@@ -423,7 +423,7 @@ FollowCameraSimple:
 FollowCameraDynamic:
     lda.w EntityPosX,x
     sec : sbc.w CamPivot
-    cmp.w #-$000C
+    cmp.w #-$000C+1
     bpl .right
 .left:
     ; Scroll to the left
