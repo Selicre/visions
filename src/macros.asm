@@ -57,3 +57,9 @@ macro oam_dma(channel, source, dest, size)
     sta.w OAMADD
     %setup_dma(<channel>, <source>, <size>)
 endmacro
+
+
+macro offset(name)
+    !offset_base_<name> = !offset_base - ?here
+?here:
+endmacro

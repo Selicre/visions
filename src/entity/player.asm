@@ -1,24 +1,40 @@
 ;; Player controller, to test collision and stuff
 
+
+; %yxppccct
+
 EntityPlayerTilemap:
     ;db $00, $F0, $C6, $06, $01
     ;db $F8, $E8, $82, $04, $01
     ;db $F8, $F8, $A2, $04, $01
     ;db $F8, $F6, $A8, $04, $01
-    db $F8, $F6, $02, $00, $01
-    db $F8, $E6, $00, $00, $01
+    db $F8, $F9, $02, $20, $01
+    db $F8, $E9, $00, $20, $01
+
+EntityPlayerTilemapRaised:
+    ;db $00, $F0, $C6, $06, $01
+    ;db $F8, $E8, $82, $04, $01
+    ;db $F8, $F8, $A2, $04, $01
+    ;db $F8, $F6, $A8, $04, $01
+    db $F8, $F8, $02, $20, $01
+    db $F8, $E8, $00, $20, $01
 
 EntityPlayerTilePtrs:
-    dw $9400, $9800     ; Standing
-    dw $C8C0, $CCC0     ; Jumping up
-    dw $C900, $CD00     ; Falling down
-    dw $9400, $A580     ; Dashing
-    dw $9400, $AD00     ; Dash jump
+    dw $9400, $9C40     ; 00 Standing
+    dw $9400, $9800     ; 04 Walking
+    dw $C8C0, $CCC0     ; 08 Jumping up
+    dw $C900, $CD00     ; 0C Falling down
+    dw $9400, $A500     ; 10 Dashing stand
+    dw $9400, $A580     ; 14 Dashing
+    dw $9400, $AD00     ; 18 Dash jump
+
+EntityPlayerAnimPeriod:
+    db $0A,$08,$06,$04,$03,$02,$01,$01
 
 EntityPlayerInit:
     lda.w #EntityPlayer
     sta.w EntityPtr,x
-    lda.w #$0606
+    lda.w #$0806
     sta.w EntitySize,x
 
 ; A counter that counts up when you have more than $240 speed.
@@ -79,11 +95,22 @@ EntityPlayer:
     lda #$0018
     bra ++
 +
+    lda.w Joypad1Held
+    bit.w #JOY_X|JOY_Y
+    bne +
+    ; walk
+    lda #$0028
+    bra ++
++
+    ; run
     lda #$0050
     ; Deceleration
 ++
     sta.b Scratch
 
+    lda.w Joypad1Held
+    bit.w #JOY_Down
+    bne ..exit
     ; Accelerate
     lda.w Joypad1Held
     bit.w #JOY_Left
@@ -108,6 +135,7 @@ EntityPlayer:
     ora.w #$4000
     sta.w EntityRender,x
 +
+..exit:
 
 .decelerate:
     lda.w EntityCollide,x
@@ -223,6 +251,52 @@ EntityPlayer:
     sta.w EntityVelY,x
 ..exit:
 
+if 0
+.incr_anim_timer:
+    ; increase timer
+    lda.w EntityVelX,x
+    bne ++
+    lda.w #$07FF
+    bra +++
+++
+    bpl +
+    eor #$FFFF : inc
++
+    clc : adc.w EntityAnimTimer,x
++++
+    sta.w EntityAnimTimer,x
+    and.w #$0800
+    sta.b Scratch
+else
+.incr_anim_timer:
+    lda.w EntityVelX,x
+    bne +
+    stz.w EntityAnimTimer,x
+    bra ..exit
++
+    bpl +
+    eor #$FFFF : inc
++
+    lsr #7
+    tay
+    sep #$20
+    dec.w EntityAnimTimer,x
+    bpl +
+    lda.w EntityPlayerAnimPeriod,y
+    sta.w EntityAnimTimer,x
+    lda.w EntityAnimTimer+1,x
+    eor.b #$01
+    sta.w EntityAnimTimer+1,x
++
+    rep #$20
+    lda.w EntityAnimTimer,x
+    and.w #$0100
+    sta.b Scratch
+..exit:
+endif
+    wdm
+    ; Use raised tilemap
+    stz.b Scratch+8
 
     ; PLAYER GRAPHICS DMA STUFF
 .do_animation:
@@ -230,14 +304,28 @@ EntityPlayer:
     bit.w #%1000
     beq ..off_ground
 ..on_ground:
+
     lda.w .p_speed,x
     bit.w #$0001
     bne ..dash
+    lda.b Scratch
+    beq +
     ldy #$0000      ; stand
     bra ..exit
-..dash:
-    ldy #$000C      ; dash
++
+    ldy #$0004      ; walk
+    inc.b Scratch+8
     bra ..exit
+..dash:
+    lda.b Scratch
+    beq +
+    ldy #$0010      ; dash stand
+    bra ..exit
++
+    ldy #$0014      ; dash walk
+    inc.b Scratch+8
+    bra ..exit
+
 ..off_ground:
     ; check for p-speed
     lda.w .p_speed,x
@@ -246,13 +334,13 @@ EntityPlayer:
     lda.w EntityVelY,x
     bpl ..fall
 ..rise:
-    ldy #$0004      ; rise
+    ldy #$0008      ; rise
     bra ..exit
 ..fall:
-    ldy #$0008      ; fall
+    ldy #$000C      ; fall
     bra ..exit
 ..dash_jump:
-    ldy #$0010      ; dash
+    ldy #$0018      ; dash jump
 ..exit:
 
     ldx.w DmaQueueOffset
@@ -294,7 +382,15 @@ EntityPlayer:
 
     jsl DoCollision
 
+    jsr FollowCameraDynamic
+
+    lda.b Scratch+8
+    bne +
     ldx.w #EntityPlayerTilemap
+    bra ++
++
+    ldx.w #EntityPlayerTilemapRaised
+++
     ldy.w #$0002
     jsl DrawEntity
     rtl
@@ -324,5 +420,89 @@ FollowCameraSimple:
     sta.b CamY
     rts
 
+FollowCameraDynamic:
+    lda.w EntityPosX,x
+    sec : sbc.w CamPivot
+    cmp.w #-$000C
+    bpl .right
+.left:
+    ; Scroll to the left
+    ; Move the camera pivot (todo: do this smoothly)
+    lda.w EntityPosX,x
+    clc : adc.w #$000C
+    sta.w CamPivot
+    lda.w CamPivotOffset
+    inc #2
+    cmp.w #$0098
+    bmi +
+    lda.w #$0098
++
+    sta.w CamPivotOffset
+    bra .exit
+.right:
+    cmp.w #$000C
+    bmi .exit
+    ; Scroll to the left
+    ; Move the camera pivot (todo: do this smoothly)
+    lda.w EntityPosX,x
+    sec : sbc.w #$000C
+    sta.w CamPivot
+    lda.w CamPivotOffset
+    dec #2
+    cmp.w #$0066
+    bpl +
+    lda.w #$0066
++
+    sta.w CamPivotOffset
+.exit:
+    lda.w CamPivot
+    sec : sbc.w CamPivotOffset
 
+    ; clamp
+    cmp.w CamBoundaryLeft
+    bpl +
+    lda.w CamBoundaryLeft
++
+    cmp.w CamBoundaryRight
+    bmi +
+    lda.w CamBoundaryRight
++
+    sta.b CamX
 
+    wdm
+
+    lda.w EntityCollide,x
+    and.w #%1000
+    ora.w CamShouldScrollUp
+    php
+
+    ldy.w #$0001
+    lda.w EntityPosY,x
+    sec : sbc.w CamY
+    plp
+    beq +
+    cmp.w #$007E
+    bpl +
+    clc : adc #$0003
+    sty.w CamShouldScrollUp
+    bra ++
++
+    stz.w CamShouldScrollUp
+++
+    cmp.w #$0096
+    bmi +
+    lda.w #$0096
++
+    eor #$FFFF : inc
+    clc : adc.w EntityPosY,x
+
+    cmp.w CamBoundaryTop
+    bpl +
+    lda.w CamBoundaryTop
++
+    cmp.w CamBoundaryBottom
+    bmi +
+    lda.w CamBoundaryBottom
++
+    sta.b CamY
+    rts

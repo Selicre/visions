@@ -71,6 +71,12 @@ CamBoundaryRight: skip $02
 CamBoundaryTop: skip $02
 CamBoundaryBottom: skip $02
 
+; Extended camera controls
+
+CamPivot: skip $02          ; The center of the 24px stable area around the player
+CamPivotOffset: skip $02    ; Where the pivot is in screen coords
+CamShouldScrollUp: skip $02 ; Should the camera catch up upwards?
+
 HorizontalSeam: skip $02
 VerticalSeam: skip $02
 DmaQueueOffset: skip $02    ; Current offset into the DMA queue
@@ -106,9 +112,7 @@ EntityWidth = EntitySize
 EntityHeight = EntitySize+1
 EntityRender: skip !EntityCount     ; flip flags
 EntityCollide: skip !EntityCount    ; bitfield of which blocks the entity is touching (udlr)
-EntityPoseData: skip !EntityCount
-EntityPose = EntityPoseData
-EntityPoseTimer = EntityPose+1
+EntityAnimTimer: skip !EntityCount
 EntityData0: skip !EntityCount
 EntityData1: skip !EntityCount
 EntityData2: skip !EntityCount

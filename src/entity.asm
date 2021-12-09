@@ -33,7 +33,6 @@ DoCollision:
     rtl
 
 DoLayerCollisionX:
-    wdm
     stz.b Scratch+6         ; Collided flag
     lda.w EntityVelX,x
     php                     ; keep the N flag

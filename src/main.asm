@@ -124,6 +124,10 @@ TestLevelData:
 
 print "Bank 0 usage: $", hex((+) - $808000) : +
 
+; fix
+org TestPal
+    dw %0000100001000010
+
 ;; BANK 8 (Graphics)
 org $818000
 
