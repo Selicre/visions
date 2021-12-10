@@ -33,7 +33,9 @@ DoCollision:
     rtl
 
 DoLayerCollisionX:
+    wdm
     stz.b Scratch+6         ; Collided flag
+    ; Obtain row pointer
     lda.w EntityVelX,x
     php                     ; keep the N flag
     lda.w EntityWidth,x
@@ -44,44 +46,48 @@ DoLayerCollisionX:
 +
     clc : adc.w EntityPosX,x
     lsr #4 : asl
-    sta.b Scratch           ; stash current offset in blocks
+    sta.b Scratch
+    sta.b Scratch+2
 
-    ; TODO: this needs to process a column of blocks, not two of them lol
-
-.topBlock:
-    lda.w EntityHeight,x    ; start collision block
+    ; Figure out the end block
+    lda.w EntityHeight,x
+    and.w #$00FF
+    clc : adc.w EntityPosY,x
+    lsr #4 : asl
+    tay
+    lda.w LevelRows,y
+    clc : adc.b Scratch
+    sta.b Scratch+$10
+    ; Figure out the start block
+    lda.w EntityHeight,x
     and.w #$00FF
     eor #$FFFF : inc
     clc : adc.w EntityPosY,x
-    ; fetch block
     lsr #4 : asl
+    tay
+    lda.w LevelRows,y
+    clc : adc.b Scratch
     tax
-    lda.l LevelRows,x
-    clc : adc.w Scratch
-    tax
+.loop:
     lda.l LevelData,x
+    phx
     ldx.w CurrentEntity
     jsr ResolveHCollision
-.bottomBlock:
-
-    lda.w EntityHeight,x    ; start collision block
-    and.w #$00FF
-    clc : adc.w EntityPosY,x
-    dec
-    ; fetch block
-    lsr #4 : asl
+    plx
+    cpx.b Scratch+$10
+    php
+    txa
+    clc : adc.w LevelWidth
     tax
-    lda.l LevelRows,x
-    clc : adc.w Scratch
-    tax
-    lda.l LevelData,x
+    plp
+    bne .loop
     ldx.w CurrentEntity
-    jsr ResolveHCollision
     lda.b Scratch+6
     beq +
     stz.w EntityVelX,x
 +
     rts
+
 
 ; massive TODO. this only handles solid collision
 ResolveHCollision:
@@ -125,9 +131,10 @@ ResolveHCollision:
 +
     rts
 
-; this is all fucked lol
 DoLayerCollisionY:
+    wdm
     stz.b Scratch+6         ; Collided flag
+    ; Obtain row pointer
     lda.w EntityVelY,x
     php                     ; keep the N flag
     lda.w EntityHeight,x
@@ -139,39 +146,36 @@ DoLayerCollisionY:
     clc : adc.w EntityPosY,x
     lsr #4 : asl
     sta.b Scratch+2
-    tax
-    lda.l LevelRows,x
-    ldx.w CurrentEntity
-    sta.b Scratch           ; stash current offset in blocks
-
-    ; TODO: this needs to process a row of blocks, not two of them lol
-
-.topBlock:
-    lda.w EntityWidth,x    ; start collision block
+    tay
+    lda.w LevelRows,y
+    sta.b Scratch
+    ; Figure out the end block
+    lda.w EntityWidth,x
+    and.w #$00FF
+    clc : adc.w EntityPosX,x
+    lsr #4 : asl
+    clc : adc.b Scratch
+    sta.b Scratch+$10
+    ; Figure out the start block
+    lda.w EntityWidth,x
     and.w #$00FF
     eor #$FFFF : inc
     clc : adc.w EntityPosX,x
-    ; fetch block
     lsr #4 : asl
-    clc : adc.w Scratch
+    clc : adc.b Scratch
     tax
+.loop:
     lda.l LevelData,x
+    phx
     ldx.w CurrentEntity
     jsr ResolveVCollision
-
-.bottomBlock:
-
-    lda.w EntityWidth,x    ; start collision block
-    and.w #$00FF
-    clc : adc.w EntityPosX,x
-    dec
-    ; fetch block
-    lsr #4 : asl
-    clc : adc.w Scratch
-    tax
-    lda.l LevelData,x
+    plx
+    cpx.b Scratch+$10
+    php
+    inx #2
+    plp
+    bne .loop
     ldx.w CurrentEntity
-    jsr ResolveVCollision
     lda.b Scratch+6
     beq +
     stz.w EntityVelY,x

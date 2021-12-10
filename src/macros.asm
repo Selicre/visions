@@ -53,8 +53,8 @@ endmacro
 macro oam_dma(channel, source, dest, size)
     ldy.w #$0400
     sty.w DMAP(<channel>)
-    lda.b #<dest>
-    sta.w OAMADD
+    ldy.w #<dest>
+    sty.w OAMADD
     %setup_dma(<channel>, <source>, <size>)
 endmacro
 
