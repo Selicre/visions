@@ -115,7 +115,7 @@ incsrc "dma_queue.asm"
 
 incsrc "gamemode.asm"
 incsrc "render.asm"
-incsrc "mappings.asm"
+incsrc "blocks.asm"
 
 incsrc "entity.asm"
 
