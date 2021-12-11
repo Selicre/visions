@@ -8,16 +8,16 @@ EntityPlayerTilemap:
     ;db $F8, $E8, $82, $04, $01
     ;db $F8, $F8, $A2, $04, $01
     ;db $F8, $F6, $A8, $04, $01
-    db $F8, $F9, $02, $20, $01
-    db $F8, $E9, $00, $20, $01
+    db $F8, $F8, $02, $20, $01
+    db $F8, $E8, $00, $20, $01
 
 EntityPlayerTilemapRaised:
     ;db $00, $F0, $C6, $06, $01
     ;db $F8, $E8, $82, $04, $01
     ;db $F8, $F8, $A2, $04, $01
     ;db $F8, $F6, $A8, $04, $01
-    db $F8, $F8, $02, $20, $01
-    db $F8, $E8, $00, $20, $01
+    db $F8, $F7, $02, $20, $01
+    db $F8, $E7, $00, $20, $01
 
 EntityPlayerTilePtrs:
     dw $9400, $9C40     ; 00 Standing
@@ -34,7 +34,7 @@ EntityPlayerAnimPeriod:
 EntityPlayerInit:
     lda.w #EntityPlayer
     sta.w EntityPtr,x
-    lda.w #$0806
+    lda.w #$0706
     sta.w EntitySize,x
 
 ; A counter that counts up when you have more than $240 speed.
@@ -294,7 +294,6 @@ else
     sta.b Scratch
 ..exit:
 endif
-    wdm
     ; Use raised tilemap
     stz.b Scratch+8
 
@@ -469,20 +468,24 @@ FollowCameraDynamic:
 +
     sta.b CamX
 
-    wdm
 
     lda.w EntityCollide,x
     and.w #%1000
     ora.w CamShouldScrollUp
     php
-
     ldy.w #$0001
     lda.w EntityPosY,x
     sec : sbc.w CamY
+    cmp.w #$0020
+    bpl +
+    plp
+    bra .forceScroll
++
     plp
     beq +
     cmp.w #$007E
     bpl +
+.forceScroll:
     clc : adc #$0003
     sty.w CamShouldScrollUp
     bra ++

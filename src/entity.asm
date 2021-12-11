@@ -33,7 +33,6 @@ DoCollision:
     rtl
 
 DoLayerCollisionX:
-    wdm
     stz.b Scratch+6         ; Collided flag
     ; Obtain row pointer
     lda.w EntityVelX,x
@@ -45,6 +44,9 @@ DoLayerCollisionX:
     eor #$FFFF : inc
 +
     clc : adc.w EntityPosX,x
+    bpl +
+    lda #$0000
++
     lsr #4 : asl
     sta.b Scratch
     sta.b Scratch+2
@@ -53,6 +55,9 @@ DoLayerCollisionX:
     lda.w EntityHeight,x
     and.w #$00FF
     clc : adc.w EntityPosY,x
+    bpl +
+    lda #$0000
++
     lsr #4 : asl
     tay
     lda.w LevelRows,y
@@ -63,6 +68,9 @@ DoLayerCollisionX:
     and.w #$00FF
     eor #$FFFF : inc
     clc : adc.w EntityPosY,x
+    bpl +
+    lda #$0000
++
     lsr #4 : asl
     tay
     lda.w LevelRows,y
@@ -132,7 +140,6 @@ ResolveHCollision:
     rts
 
 DoLayerCollisionY:
-    wdm
     stz.b Scratch+6         ; Collided flag
     ; Obtain row pointer
     lda.w EntityVelY,x
@@ -144,6 +151,9 @@ DoLayerCollisionY:
     eor #$FFFF : inc
 +
     clc : adc.w EntityPosY,x
+    bpl +
+    lda #$0000
++
     lsr #4 : asl
     sta.b Scratch+2
     tay
@@ -153,6 +163,9 @@ DoLayerCollisionY:
     lda.w EntityWidth,x
     and.w #$00FF
     clc : adc.w EntityPosX,x
+    bpl +
+    lda #$0000
++
     lsr #4 : asl
     clc : adc.b Scratch
     sta.b Scratch+$10
@@ -161,6 +174,9 @@ DoLayerCollisionY:
     and.w #$00FF
     eor #$FFFF : inc
     clc : adc.w EntityPosX,x
+    bpl +
+    lda #$0000
++
     lsr #4 : asl
     clc : adc.b Scratch
     tax

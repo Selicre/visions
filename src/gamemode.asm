@@ -17,15 +17,15 @@ GamemodeLoad:
     sta.b [Scratch],y
     iny #2
     inx
-    cpx.w #64*64
+    cpx.w #512*32
     bne -
 
-    lda.w #$0400-$100
+    lda.w #$2000-$100
     sta.w CamBoundaryRight
-    lda.w #$0400-$E0
+    lda.w #$0200-$E1
     sta.w CamBoundaryBottom
 
-    lda.w #$0080
+    lda.w #$0400
     sta.w LevelWidth
 
     lda.w #$0000
@@ -64,9 +64,9 @@ GamemodeLoad:
     sta.w BGMODE
     lda.b #$11
     sta.w TM
-    lda.b #$A1
+    lda.b #$D1
     sta.w BG1SC
-    lda.b #$B1
+    lda.b #$D9
     sta.w BG2SC
 
     lda.b #%00000111
@@ -152,6 +152,7 @@ endif
     bmi +
     inc.w VerticalSeam
     inc.w VerticalSeam
+    lda.w VerticalSeam
     clc : adc.w #$1E
     bra ++
 +
@@ -170,6 +171,7 @@ endif
     bmi +
     inc.w HorizontalSeam
     inc.w HorizontalSeam
+    lda.w HorizontalSeam
     clc : adc.w #$3E
     bra ++
 +
@@ -179,7 +181,6 @@ endif
 ++
     jsr RenderTilemapColumn
 .skipX:
-
     rts
 
 

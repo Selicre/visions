@@ -18,7 +18,7 @@ RenderTilemapColumn:
     bmi +
     clc : adc.w #$400-$20   ; if it is, put it there
 +
-    clc : adc.w #$2000      ; nametable location in VRAM
+    clc : adc.w #$5000      ; nametable location in VRAM
     sta.b Scratch+$0A
 
     ; Set up seam
@@ -133,7 +133,7 @@ RenderTilemapRow:
     ; calculate vram destination
     asl #5
     and.w #$03FF
-    clc : adc.w #$2000  ; TODO: pull from elsewhere?
+    clc : adc.w #$5000  ; TODO: pull from elsewhere?
     sta.b Scratch+$0A
 
     ; Set up seam
