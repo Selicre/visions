@@ -79,9 +79,15 @@ CamShouldScrollUp: skip $02 ; Should the camera catch up upwards?
 
 HorizontalSeam: skip $02
 VerticalSeam: skip $02
+
 DmaQueueOffset: skip $02    ; Current offset into the DMA queue
-GfxBufferPtr: skip $02
+GfxBufferPtr: skip $02      ; Pointer to the gfx decompression buffer
 CurrentEntity: skip $02     ; ID of the entity currently being processed.
+
+; Dynamic block updates
+
+UpdateBlockX: skip $02      ; Set these variables to update the block on screen
+UpdateBlockY: skip $02
 
 
 base $0E00
@@ -121,9 +127,8 @@ print "Entity usage: $", hex(+) : +
 
 
 
-
-GfxBuffer    = $7F0000      ; Generic decompression buffer
-LevelData    = $7F8000      ; Level data (word buffer)
+LevelData    = $7F0000      ; Level data (word buffer)
+GfxBuffer    = $7F8000      ; Generic decompression buffer
 
 
 base off

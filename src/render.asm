@@ -235,3 +235,62 @@ RenderTilemapRow:
     clc : adc.w #$0010
     sta.w DmaQueueOffset
     rts
+
+; Inputs:
+; A = block to change to
+; UpdateBlockX = x coord of the block
+; UpdateBlockY = y coord of the block
+UpdateTilemapBlock:
+    ; Calculate mappings offset
+    asl #3
+    pha
+    pha
+
+    ; Calculate tilemap address
+    lda.w UpdateBlockX
+    and.w #$003E
+    cmp #$0020
+    bmi +
+    clc : adc.w #$400-$20       ; move to second screen
++
+    asl
+    sta 1,s
+    lda.w UpdateBlockY
+    and.w #$001E
+    asl #6
+    clc : adc 1,s
+    clc : adc.w #$A000          ; vram destination
+    lsr
+    sta 1,s
+
+    lda 3,s
+    clc : adc.w #BlockMappings
+    ; build DMA queue entries
+    ldx.w DmaQueueOffset
+    sta.w DmaQueueAddr,x
+    clc : adc.w #$0004
+    sta.w DmaQueueAddr+8,x
+    lda 1,s
+    sta.w DmaQueueDest,x
+    clc : adc.w #$0020
+    sta.w DmaQueueDest+8,x
+    lda.w #$0004
+    sta.w DmaQueueSize,x
+    sta.w DmaQueueSize+8,x
+
+    sep #$20
+    lda.b #BlockMappings>>16
+    sta.w DmaQueueAddr+2,x
+    sta.w DmaQueueAddr+2+8,x
+    stz.w DmaQueueMode,x
+    stz.w DmaQueueMode+8,x
+    rep #$20
+
+    txa
+    clc : adc.w #$0010
+    sta.w DmaQueueOffset
+
+    pla
+    pla
+
+    rts

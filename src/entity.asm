@@ -22,6 +22,8 @@ RunEntities:
     rts
 
 DoCollision:
+    phb : phk : plb
+
     stz.w EntityCollide
     ; do X first
     jsr ApplySpeedX
@@ -30,13 +32,19 @@ DoCollision:
     ; then Y
     jsr ApplySpeedY
     jsr DoLayerCollisionY
+
+    plb
     rtl
 
+
 DoLayerCollisionX:
-    stz.b Scratch+6         ; Collided flag
+    ; set up longptr to block
+    lda.w #$007F
+    sta.b LayerCollPtr+2
     ; Obtain row pointer
     lda.w EntityVelX,x
-    php                     ; keep the N flag
+    sta.b LayerCollDirection    ; stash initial speed
+    php                         ; keep the N flag
     lda.w EntityWidth,x
     and.w #$00FF
     plp
@@ -48,8 +56,8 @@ DoLayerCollisionX:
     lda #$0000
 +
     lsr #4 : asl
-    sta.b Scratch
-    sta.b Scratch+2
+    sta.b LayerCollClampPos
+    sta.w UpdateBlockX
 
     ; Figure out the end block
     lda.w EntityHeight,x
@@ -61,8 +69,9 @@ DoLayerCollisionX:
     lsr #4 : asl
     tay
     lda.w LevelRows,y
-    clc : adc.b Scratch
-    sta.b Scratch+$10
+    clc : adc.b LayerCollClampPos
+    sta.b LayerCollPtrEnd
+
     ; Figure out the start block
     lda.w EntityHeight,x
     and.w #$00FF
@@ -72,77 +81,81 @@ DoLayerCollisionX:
     lda #$0000
 +
     lsr #4 : asl
+    sta.w UpdateBlockY
     tay
     lda.w LevelRows,y
-    clc : adc.b Scratch
-    tax
+    clc : adc.b LayerCollClampPos
+    sta.b LayerCollPtr
 .loop:
-    lda.l LevelData,x
-    phx
-    ldx.w CurrentEntity
-    jsr ResolveHCollision
-    plx
-    cpx.b Scratch+$10
-    php
-    txa
-    clc : adc.w LevelWidth
+    lda.b [LayerCollPtr]
+    asl
     tax
+    jsr (BlockXRoutine,x)
+    ldx.w CurrentEntity
+    lda.b LayerCollPtr
+    cmp.b LayerCollPtrEnd
+    php
+    clc : adc.w LevelWidth
+    rep 2 : inc.w UpdateBlockY
+    sta.b LayerCollPtr
     plp
     bne .loop
-    ldx.w CurrentEntity
-    lda.b Scratch+6
-    beq +
-    stz.w EntityVelX,x
-+
     rts
 
 
 ; massive TODO. this only handles solid collision
-ResolveHCollision:
-    cmp #$0000
-    beq +   ; if air, do nothing
+BlockSolidX:
+    ldx.w CurrentEntity
     ; if not, clamp position
-    lda.w EntityVelX,x
-    bpl ++
+    lda.b LayerCollDirection
+    bpl +
     ; if speed is negative, then push out to the right
     ; calculate the target position
-    lda.b Scratch
+    lda.b LayerCollClampPos
     inc #2
     asl #3
-    sta.b Scratch+4
+    sta.b Scratch+9
     lda.w EntityWidth,x
     and.w #$00FF
-    clc : adc.b Scratch+4
+    clc : adc.b Scratch+9
     sta.w EntityPosX,x
     sep #$20 : stz.w EntitySubPosX,x : rep #$20
-    inc.b Scratch+6
+    stz.w EntityVelX,x
     lda.w EntityCollide,x
     ora.w #$0002
     sta.w EntityCollide,x
     rts
-++
++
     ; do the same but to the right
-    lda.b Scratch
+    lda.b LayerCollClampPos
     asl #3
     dec
-    sta.b Scratch+4
+    sta.b Scratch+9
     lda.w EntityWidth,x
     and.w #$00FF
     eor.w #$FFFF : inc
-    clc : adc.b Scratch+4
+    clc : adc.b Scratch+9
     sta.w EntityPosX,x
-    sep #$20 : stz.w EntitySubPosX,x : rep #$20
-    inc.b Scratch+6
+    sep #$20 : lda.b #$F0 : sta.w EntitySubPosX,x : rep #$20
+    stz.w EntityVelX,x
     lda.w EntityCollide,x
     ora.w #$0001
     sta.w EntityCollide,x
-+
     rts
 
+; Scratch stuff
+LayerCollPtr = Scratch
+LayerCollPtrEnd = Scratch+3
+LayerCollClampPos = Scratch+5
+LayerCollDirection = Scratch+7
+
 DoLayerCollisionY:
-    stz.b Scratch+6         ; Collided flag
+    ; set up longptr to block
+    lda.w #$007F
+    sta.b LayerCollPtr+2
     ; Obtain row pointer
     lda.w EntityVelY,x
+    sta.b LayerCollDirection
     php                     ; keep the N flag
     lda.w EntityHeight,x
     and.w #$00FF
@@ -155,10 +168,11 @@ DoLayerCollisionY:
     lda #$0000
 +
     lsr #4 : asl
-    sta.b Scratch+2
+    sta.b LayerCollClampPos
+    sta.w UpdateBlockY
     tay
     lda.w LevelRows,y
-    sta.b Scratch
+    sta.b Scratch+9
     ; Figure out the end block
     lda.w EntityWidth,x
     and.w #$00FF
@@ -167,8 +181,8 @@ DoLayerCollisionY:
     lda #$0000
 +
     lsr #4 : asl
-    clc : adc.b Scratch
-    sta.b Scratch+$10
+    clc : adc.b Scratch+9
+    sta.b LayerCollPtrEnd
     ; Figure out the start block
     lda.w EntityWidth,x
     and.w #$00FF
@@ -178,66 +192,63 @@ DoLayerCollisionY:
     lda #$0000
 +
     lsr #4 : asl
-    clc : adc.b Scratch
-    tax
+    sta.w UpdateBlockX
+    clc : adc.b Scratch+9
+    sta.b LayerCollPtr
 .loop:
-    lda.l LevelData,x
-    phx
+    lda.b [LayerCollPtr]
+    asl
+    tax
+    jsr (BlockYRoutine,x)
     ldx.w CurrentEntity
-    jsr ResolveVCollision
-    plx
-    cpx.b Scratch+$10
+    lda.b LayerCollPtr
+    cmp.b LayerCollPtrEnd
     php
-    inx #2
+    inc #2
+    rep 2 : inc.w UpdateBlockX
+    sta.b LayerCollPtr
     plp
     bne .loop
-    ldx.w CurrentEntity
-    lda.b Scratch+6
-    beq +
-    stz.w EntityVelY,x
-+
     rts
 
 ; massive TODO. this only handles solid collision
-ResolveVCollision:
-    cmp #$0000
-    beq +   ; if air, do nothing
+BlockSolidY:
+    ldx.w CurrentEntity
     ; if not, clamp position
-    lda.w EntityVelY,x
-    bpl ++
+    lda.w LayerCollDirection
+    bpl +
     ; if speed is negative, then push out to the bottom
     ; calculate the target position
-    lda.b Scratch+2
+    lda.b LayerCollClampPos
     inc #2
     asl #3
-    sta.b Scratch+4
+    sta.b Scratch+9
     lda.w EntityHeight,x
     and.w #$00FF
-    clc : adc.b Scratch+4
+    clc : adc.b Scratch+9
     sta.w EntityPosY,x
     sep #$20 : stz.w EntitySubPosY,x : rep #$20
-    inc.b Scratch+6
+    stz.w EntityVelY,x
     lda.w EntityCollide,x
     ora.w #$0004
     sta.w EntityCollide,x
     rts
-++
++
     ; do the same but to the top
-    lda.b Scratch+2
+    lda.b LayerCollClampPos
     asl #3
     dec
-    sta.b Scratch+4
+    sta.b Scratch+9
     lda.w EntityHeight,x
     and.w #$00FF
     eor.w #$FFFF : inc
-    clc : adc.b Scratch+4
+    clc : adc.b Scratch+9
     sta.w EntityPosY,x
     sep #$20 : lda.b #$F0 : sta.w EntitySubPosY,x : rep #$20
-    inc.b Scratch+6
+    stz.w EntityVelY,x
     lda.w EntityCollide,x
     ora.w #$0008
     sta.w EntityCollide,x
-+
     rts
 
 ApplySpeedX:

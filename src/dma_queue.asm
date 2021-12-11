@@ -60,6 +60,6 @@ DmaQueueExec:
 .exit:
     stz.w DmaQueueOffset
     stz.w DmaQueueOffset+1
-    stz.w GfxBufferPtr
-    stz.w GfxBufferPtr+1
+    ldy.w #GfxBuffer
+    sty.w GfxBufferPtr
     rts

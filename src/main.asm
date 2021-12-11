@@ -46,6 +46,8 @@ Boot:
     rep #$30
 
 InitFrame:
+    lda.w #GfxBuffer
+    sta.w GfxBufferPtr
     lda.w #GamemodeLoad
     sta.b GamemodePtr
     lda.w #NoNmi

@@ -295,7 +295,7 @@ else
 ..exit:
 endif
     ; Use raised tilemap
-    stz.b Scratch+8
+    stz.b Scratch+2
 
     ; PLAYER GRAPHICS DMA STUFF
 .do_animation:
@@ -313,7 +313,7 @@ endif
     bra ..exit
 +
     ldy #$0004      ; walk
-    inc.b Scratch+8
+    inc.b Scratch+2
     bra ..exit
 ..dash:
     lda.b Scratch
@@ -322,7 +322,7 @@ endif
     bra ..exit
 +
     ldy #$0014      ; dash walk
-    inc.b Scratch+8
+    inc.b Scratch+2
     bra ..exit
 
 ..off_ground:
@@ -341,6 +341,8 @@ endif
 ..dash_jump:
     ldy #$0018      ; dash jump
 ..exit:
+    lda.b Scratch+2
+    pha
 
     ldx.w DmaQueueOffset
     lda.w EntityPlayerTilePtrs,y
@@ -383,7 +385,7 @@ endif
 
     jsr FollowCameraDynamic
 
-    lda.b Scratch+8
+    pla
     bne +
     ldx.w #EntityPlayerTilemap
     bra ++
