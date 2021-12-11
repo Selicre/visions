@@ -36,6 +36,11 @@ DoCollision:
     plb
     rtl
 
+; Scratch stuff
+LayerCollPtr = Scratch
+LayerCollPtrEnd = Scratch+3
+LayerCollClampPos = Scratch+5
+LayerCollDirection = Scratch+7
 
 DoLayerCollisionX:
     ; set up longptr to block
@@ -102,53 +107,6 @@ DoLayerCollisionX:
     bne .loop
     rts
 
-
-; massive TODO. this only handles solid collision
-BlockSolidX:
-    ldx.w CurrentEntity
-    ; if not, clamp position
-    lda.b LayerCollDirection
-    bpl +
-    ; if speed is negative, then push out to the right
-    ; calculate the target position
-    lda.b LayerCollClampPos
-    inc #2
-    asl #3
-    sta.b Scratch+9
-    lda.w EntityWidth,x
-    and.w #$00FF
-    clc : adc.b Scratch+9
-    sta.w EntityPosX,x
-    sep #$20 : stz.w EntitySubPosX,x : rep #$20
-    stz.w EntityVelX,x
-    lda.w EntityCollide,x
-    ora.w #$0002
-    sta.w EntityCollide,x
-    rts
-+
-    ; do the same but to the right
-    lda.b LayerCollClampPos
-    asl #3
-    dec
-    sta.b Scratch+9
-    lda.w EntityWidth,x
-    and.w #$00FF
-    eor.w #$FFFF : inc
-    clc : adc.b Scratch+9
-    sta.w EntityPosX,x
-    sep #$20 : lda.b #$F0 : sta.w EntitySubPosX,x : rep #$20
-    stz.w EntityVelX,x
-    lda.w EntityCollide,x
-    ora.w #$0001
-    sta.w EntityCollide,x
-    rts
-
-; Scratch stuff
-LayerCollPtr = Scratch
-LayerCollPtrEnd = Scratch+3
-LayerCollClampPos = Scratch+5
-LayerCollDirection = Scratch+7
-
 DoLayerCollisionY:
     ; set up longptr to block
     lda.w #$007F
@@ -209,46 +167,6 @@ DoLayerCollisionY:
     sta.b LayerCollPtr
     plp
     bne .loop
-    rts
-
-; massive TODO. this only handles solid collision
-BlockSolidY:
-    ldx.w CurrentEntity
-    ; if not, clamp position
-    lda.w LayerCollDirection
-    bpl +
-    ; if speed is negative, then push out to the bottom
-    ; calculate the target position
-    lda.b LayerCollClampPos
-    inc #2
-    asl #3
-    sta.b Scratch+9
-    lda.w EntityHeight,x
-    and.w #$00FF
-    clc : adc.b Scratch+9
-    sta.w EntityPosY,x
-    sep #$20 : stz.w EntitySubPosY,x : rep #$20
-    stz.w EntityVelY,x
-    lda.w EntityCollide,x
-    ora.w #$0004
-    sta.w EntityCollide,x
-    rts
-+
-    ; do the same but to the top
-    lda.b LayerCollClampPos
-    asl #3
-    dec
-    sta.b Scratch+9
-    lda.w EntityHeight,x
-    and.w #$00FF
-    eor.w #$FFFF : inc
-    clc : adc.b Scratch+9
-    sta.w EntityPosY,x
-    sep #$20 : lda.b #$F0 : sta.w EntitySubPosY,x : rep #$20
-    stz.w EntityVelY,x
-    lda.w EntityCollide,x
-    ora.w #$0008
-    sta.w EntityCollide,x
     rts
 
 ApplySpeedX:
