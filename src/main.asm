@@ -116,6 +116,7 @@ incsrc "dma_queue.asm"
 incsrc "gamemode.asm"
 incsrc "render.asm"
 incsrc "blocks.asm"
+incsrc "animated_gfx.asm"
 
 incsrc "entity.asm"
 incsrc "ext_entity.asm"
@@ -151,5 +152,9 @@ org $838000
 PlayerGfx:
     incbin "../player_gfx.bin"
 
-org $83FFFF
+org $848000
+AnimatedGfx:
+    incbin "../anim_gfx.bin"
+
+org $84FFFF
     db $00

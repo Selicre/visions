@@ -66,7 +66,7 @@ endmacro
 
 macro ext_entity_slot()
     ldx.w ExtEntitySlot
-    cpx.w #$0020
+    cpx.w #!ExtEntityCount
     bmi ?next
     ldx.w #$0000
     stx.w ExtEntitySlot

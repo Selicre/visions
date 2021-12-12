@@ -41,7 +41,6 @@ BounceBlock:
     ora.w #$FF00
     clc : adc.w ExtEntityPosY,x
     sec : sbc.w CamY
-    dec
     ;clc : adc.w #$0004
     sta.w OamOffsetY
     lda.w ExtEntityData2,x

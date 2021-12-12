@@ -8,16 +8,16 @@ EntityPlayerTilemap:
     ;db $F8, $E8, $82, $04, $01
     ;db $F8, $F8, $A2, $04, $01
     ;db $F8, $F6, $A8, $04, $01
-    db $F8, $F8, $02, $20, $01
-    db $F8, $E8, $00, $20, $01
+    db $F8, $F9, $02, $20, $01
+    db $F8, $E9, $00, $20, $01
 
 EntityPlayerTilemapRaised:
     ;db $00, $F0, $C6, $06, $01
     ;db $F8, $E8, $82, $04, $01
     ;db $F8, $F8, $A2, $04, $01
     ;db $F8, $F6, $A8, $04, $01
-    db $F8, $F7, $02, $20, $01
-    db $F8, $E7, $00, $20, $01
+    db $F8, $F8, $02, $20, $01
+    db $F8, $E8, $00, $20, $01
 
 EntityPlayerTilePtrs:
     dw $9400, $9C40     ; 00 Standing

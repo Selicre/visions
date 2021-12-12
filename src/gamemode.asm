@@ -105,7 +105,6 @@ CoolTilemap:
 
 GamemodeMain:
 
-
 if 0
     lda.w Joypad1Held
     bit.w #JOY_Left
@@ -140,9 +139,9 @@ if 0
 +
 
 endif
-
     jsr RunEntities
     jsr RunExtEntities
+    jsr AnimateGfx
 
     ; Scrolling Y
     lda.b CamY
@@ -195,6 +194,7 @@ NmiMain:
     rep #$20
     lda.b CamY
     sta.w Layer1Y
+    dec
     sep #$20
     sta.w BG1VOFS
     xba

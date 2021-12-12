@@ -1,8 +1,8 @@
 BlockMappings:
     dw $00F8, $00F8, $00F8, $00F8   ; 0 Air
-    dw $1868, $1869, $186A, $186B   ; 1 Turnblock
-    dw $1C68, $1C69, $1C6A, $1C6B   ; 2 Throw block
-    dw $1848, $1849, $184A, $184B   ; 3 Turnblock
+    dw $1806, $1807, $1816, $1817   ; 1 Turn block
+    dw $1C06, $1C07, $1C16, $1C17   ; 2 Throw block
+    dw $1860, $1861, $1862, $1863   ; 3 Question block
     dw $0982, $0983, $0992, $0993   ; 4 Grass
     dw $0994, $0995, $0992, $0993   ; 5 Dirt
     dw $1030, $1031, $1032, $1033   ; 6 Cement

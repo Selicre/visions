@@ -84,6 +84,8 @@ DmaQueueOffset: skip $02    ; Current offset into the DMA queue
 GfxBufferPtr: skip $02      ; Pointer to the gfx decompression buffer
 CurrentEntity: skip $02     ; ID of the entity currently being processed.
 
+GlobalAnimTimer: skip $02   ; Animation timer for graphics
+
 ; Dynamic block updates
 
 UpdateBlockX: skip $02      ; Set these variables to update the block on screen
@@ -130,14 +132,14 @@ EntityData2: skip !EntityCount
 EntityData3: skip !EntityCount
 
 
-!ExtEntityCount = 16*2
-ExtEntityPtr: skip !EntityCount
-ExtEntityPosX: skip !EntityCount
-ExtEntityPosY: skip !EntityCount
-ExtEntityData0: skip !EntityCount
-ExtEntityData1: skip !EntityCount
-ExtEntityData2: skip !EntityCount
-ExtEntityData3: skip !EntityCount
+!ExtEntityCount = 32*2
+ExtEntityPtr: skip !ExtEntityCount
+ExtEntityPosX: skip !ExtEntityCount
+ExtEntityPosY: skip !ExtEntityCount
+ExtEntityData0: skip !ExtEntityCount
+ExtEntityData1: skip !ExtEntityCount
+ExtEntityData2: skip !ExtEntityCount
+ExtEntityData3: skip !ExtEntityCount
 
 
 
