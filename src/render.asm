@@ -241,6 +241,7 @@ RenderTilemapRow:
 ; UpdateBlockX = x coord of the block
 ; UpdateBlockY = y coord of the block
 UpdateTilemapBlock:
+    phb : phk : plb
     ; Calculate mappings offset
     asl #3
     pha
@@ -292,5 +293,6 @@ UpdateTilemapBlock:
 
     pla
     pla
+    plb
 
-    rts
+    rtl

@@ -22,7 +22,7 @@ GamemodeLoad:
 
     lda.w #$2000-$100
     sta.w CamBoundaryRight
-    lda.w #$0200-$E1
+    lda.w #$0200-$E0
     sta.w CamBoundaryBottom
 
     lda.w #$0400
@@ -142,6 +142,7 @@ if 0
 endif
 
     jsr RunEntities
+    jsr RunExtEntities
 
     ; Scrolling Y
     lda.b CamY

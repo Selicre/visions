@@ -394,6 +394,7 @@ endif
 ++
     ldy.w #$0002
     jsl DrawEntity
+
     rtl
 
 

@@ -56,6 +56,7 @@ DoLayerCollisionX:
     bpl +
     eor #$FFFF : inc
 +
+    sta.b Scratch+9
     clc : adc.w EntityPosX,x
     bpl +
     lda #$0000
@@ -63,6 +64,17 @@ DoLayerCollisionX:
     lsr #4 : asl
     sta.b LayerCollClampPos
     sta.w UpdateBlockX
+
+    ; check if we need to collide to begin with (TODO: unfuck this)
+    lda.w Scratch+9
+    clc : adc.w EntityLastPos,x
+    bpl +
+    lda #$0000
++
+    lsr #4 : asl
+    cmp.b LayerCollClampPos
+    beq .exit
+
 
     ; Figure out the end block
     lda.w EntityHeight,x
@@ -105,6 +117,7 @@ DoLayerCollisionX:
     sta.b LayerCollPtr
     plp
     bne .loop
+.exit:
     rts
 
 DoLayerCollisionY:
@@ -121,6 +134,7 @@ DoLayerCollisionY:
     bpl +
     eor #$FFFF : inc
 +
+    sta.b Scratch+9
     clc : adc.w EntityPosY,x
     bpl +
     lda #$0000
@@ -128,7 +142,18 @@ DoLayerCollisionY:
     lsr #4 : asl
     sta.b LayerCollClampPos
     sta.w UpdateBlockY
-    tay
+
+    ; check if we need to collide to begin with (TODO: unfuck this)
+    lda.b Scratch+9
+    clc : adc.w EntityLastPos,x
+    bpl +
+    lda #$0000
++
+    lsr #4 : asl
+    cmp.b LayerCollClampPos
+    beq .exit
+
+    ldy.b LayerCollClampPos
     lda.w LevelRows,y
     sta.b Scratch+9
     ; Figure out the end block
@@ -167,9 +192,12 @@ DoLayerCollisionY:
     sta.b LayerCollPtr
     plp
     bne .loop
+.exit:
     rts
 
 ApplySpeedX:
+    lda.w EntityPosX,x
+    sta.w EntityLastPos,x
     sep #$20
     clc
 
@@ -197,6 +225,8 @@ ApplySpeedX:
     rts
 
 ApplySpeedY:
+    lda.w EntityPosY,x
+    sta.w EntityLastPos,x
     sep #$20
     clc
 

@@ -63,3 +63,14 @@ macro offset(name)
     !offset_base_<name> = !offset_base - ?here
 ?here:
 endmacro
+
+macro ext_entity_slot()
+    ldx.w ExtEntitySlot
+    cpx.w #$0020
+    bmi ?next
+    ldx.w #$0000
+    stx.w ExtEntitySlot
+?next:
+    inc.w ExtEntitySlot
+    inc.w ExtEntitySlot
+endmacro

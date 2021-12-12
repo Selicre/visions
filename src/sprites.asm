@@ -20,20 +20,22 @@
 ; X: pointer at the end
 ; Clobbers 4 bytes of scratch space
 
-
+DrawSpriteXPos = Scratch+2
+DrawSpriteXOffset = Scratch+4
+DrawSpriteSize = Scratch+6
 
 DrawSpriteTilemap:
-    stz.b Scratch+4
+.loop:
+    stz.b DrawSpriteXOffset
     lda.w OamFlipMask   ; get sprite flip
     bit.w #$4000        ; horizontal flip?
     beq +
     lda $0004,x         ; load size
     and #$00FF
-    asl #3              ; this is weird but it does the size offset thing
+    asl #3              ; 0px if not flipped, 8px if flipped small, 16px if flipped large
     adc #$0008
-    sta.w Scratch+4
+    sta.w DrawSpriteXOffset
 +
-.loop:
     lda $0001,x         ; load y
     %signext()
     clc : adc.w OamOffsetY
@@ -46,7 +48,7 @@ DrawSpriteTilemap:
     lda $0000,x         ; load x
     %signext()
     pha
-    lda Scratch+4
+    lda DrawSpriteXOffset
     beq +
     lda 1,s
     eor.w #$FFFF : inc
@@ -54,13 +56,13 @@ DrawSpriteTilemap:
 +
     pla
     clc : adc.w OamOffsetX
-    sec : sbc.w Scratch+4
+    sec : sbc.w DrawSpriteXOffset
     cmp #$FFF0
     bmi .next
     cmp #$0100
     bpl .next
 
-    sta.b Scratch+2
+    sta.b DrawSpriteXPos
     sta.b (OamPtr)
     inc.b OamPtr
     lda.b Scratch
@@ -74,6 +76,8 @@ DrawSpriteTilemap:
     inc.b OamPtr
     inc.b OamPtr
 
+    lda.w $0004,x       ; load size
+    sta.b DrawSpriteSize
     jsr HandleHiOam
 .next:
     inx #5
@@ -85,22 +89,21 @@ DrawSpriteTilemap:
 
 HandleHiOam:
     ; handle hioam (TODO; this kinda sucks)
-
     sep #$20            ; 8-bit mode
     lda.b (HiOamPtr)
     sta.b Scratch
     phx
 
-    lda.w $0004,x       ; load size
+    lda.b DrawSpriteSize    ; load size
     beq +
     ldx.w HiOamIndex
-    lda.l .ptr_to_s,x
+    lda.l DrawSpriteSFlag,x
     tsb.b Scratch
 +
-    lda.b Scratch+3     ; load high byte of x
-    beq +               ; if non-zero, assume the x bit is set
+    lda.b DrawSpriteXPos+1  ; load high byte of x
+    beq +                   ; if non-zero, assume the x bit is set
     ldx.w HiOamIndex
-    lda.l .ptr_to_x,x
+    lda.l DrawSpriteXFlag,x
     tsb.b Scratch
 +
     lda.b Scratch
@@ -122,10 +125,122 @@ HandleHiOam:
     rep #$20
 +
     rts
-.ptr_to_x:
+DrawSpriteXFlag:
     db $01, $04, $10, $40
-.ptr_to_s:
+DrawSpriteSFlag:
     db $02, $08, $20, $80
+
+; uses OamOffsetX & OamOffsetY for position, A as tile
+DrawSmallTile:
+    pha
+    lda.w OamOffsetY
+    cmp #$FFF0
+    bmi .exit
+    cmp #$00E0
+    bpl .exit
+    lda.w OamOffsetX
+    cmp #$FFF0
+    bmi .exit
+    cmp #$0100
+    bpl .exit
+    sta.b (OamPtr)
+    inc.b OamPtr
+    lda.w OamOffsetY
+    sta.b (OamPtr)
+    inc.b OamPtr
+    pla
+    sta.b (OamPtr)
+    inc.b OamPtr
+    inc.b OamPtr
+
+    sep #$20            ; 8-bit mode
+    lda.b (HiOamPtr)
+    sta.b Scratch
+
+    lda.w OamOffsetX+1      ; load high byte of x
+    beq +                   ; if non-zero, assume the x bit is set
+    ldx.w HiOamIndex
+    lda.l DrawSpriteXFlag,x
+    tsb.b Scratch
++
+    lda.b Scratch
+    sta.b (HiOamPtr)
+    rep #$20            ; 16-bit mode
+
+    inc.w HiOamIndex    ; increment index and pointer, if necessary
+    lda.w HiOamIndex
+    cmp.w #$0004
+    bne +
+    stz.w HiOamIndex
+    inc.b HiOamPtr
+    sep #$20
+    lda.b #$00
+    sta.b (HiOamPtr)
+    rep #$20
++
+    rtl
+.exit:
+    pla
+    rtl
+
+; TODO: deduplicate maybe
+; uses OamOffsetX & OamOffsetY for position, A as tile
+DrawLargeTile:
+    pha
+    lda.w OamOffsetY
+    cmp #$FFF0
+    bmi .exit
+    cmp #$00E0
+    bpl .exit
+    lda.w OamOffsetX
+    cmp #$FFF0
+    bmi .exit
+    cmp #$0100
+    bpl .exit
+    sta.b (OamPtr)
+    inc.b OamPtr
+    lda.w OamOffsetY
+    sta.b (OamPtr)
+    inc.b OamPtr
+    pla
+    sta.b (OamPtr)
+    inc.b OamPtr
+    inc.b OamPtr
+
+    sep #$20            ; 8-bit mode
+    lda.b (HiOamPtr)
+    sta.b Scratch
+
+    ldx.w HiOamIndex
+    lda.l DrawSpriteSFlag,x
+    tsb.b Scratch
+
+    lda.w OamOffsetX+1      ; load high byte of x
+    beq +                   ; if non-zero, assume the x bit is set
+    ldx.w HiOamIndex
+    lda.l DrawSpriteXFlag,x
+    tsb.b Scratch
++
+    lda.b Scratch
+    sta.b (HiOamPtr)
+    rep #$20            ; 16-bit mode
+
+    inc.w HiOamIndex    ; increment index and pointer, if necessary
+    lda.w HiOamIndex
+    cmp.w #$0004
+    bne +
+    stz.w HiOamIndex
+    inc.b HiOamPtr
+    sep #$20
+    lda.b #$00
+    sta.b (HiOamPtr)
+    rep #$20
++
+    rtl
+.exit:
+    pla
+    rtl
+
 
 ResetSprites:
     lda.w #OamBuffer

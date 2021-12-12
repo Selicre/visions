@@ -118,6 +118,7 @@ incsrc "render.asm"
 incsrc "blocks.asm"
 
 incsrc "entity.asm"
+incsrc "ext_entity.asm"
 
 TestPal:
     incbin "../testpal.bin"
@@ -142,6 +143,8 @@ SprGfx:
 org $828000
 
 incsrc "entity/player.asm"
+incsrc "ext_entity/coin_sparkle.asm"
+incsrc "ext_entity/bounce_block.asm"
 print "Bank 2 usage: $", hex((+) - $828000) : +
 
 org $838000

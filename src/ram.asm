@@ -89,6 +89,10 @@ CurrentEntity: skip $02     ; ID of the entity currently being processed.
 UpdateBlockX: skip $02      ; Set these variables to update the block on screen
 UpdateBlockY: skip $02
 
+; Extended entities
+
+ExtEntitySlot: skip $02
+
 
 base $0E00
 DmaQueue: skip $100         ; Dma queue data (see dma_queue.asm)
@@ -111,6 +115,7 @@ EntityPosY: skip !EntityCount
 EntitySubPos: skip !EntityCount
 EntitySubPosX = EntitySubPos
 EntitySubPosY = EntitySubPos+1
+EntityLastPos: skip !EntityCount    ; Used in collision to determine your last position on either axis
 EntityVelX: skip !EntityCount
 EntityVelY: skip !EntityCount
 EntitySize: skip !EntityCount
@@ -123,6 +128,19 @@ EntityData0: skip !EntityCount
 EntityData1: skip !EntityCount
 EntityData2: skip !EntityCount
 EntityData3: skip !EntityCount
+
+
+!ExtEntityCount = 16*2
+ExtEntityPtr: skip !EntityCount
+ExtEntityPosX: skip !EntityCount
+ExtEntityPosY: skip !EntityCount
+ExtEntityData0: skip !EntityCount
+ExtEntityData1: skip !EntityCount
+ExtEntityData2: skip !EntityCount
+ExtEntityData3: skip !EntityCount
+
+
+
 print "Entity usage: $", hex(+) : +
 
 

@@ -1,14 +1,16 @@
 BlockMappings:
-    dw $00F8, $00F8, $00F8, $00F8   ; Air
-    dw $1868, $1869, $186A, $186B   ; Turnblock
-    dw $1C68, $1C69, $1C6A, $1C6B   ; Throw block
-    dw $1848, $1849, $184A, $184B   ; Turnblock
-    dw $0982, $0983, $0992, $0993   ; Grass
-    dw $0994, $0995, $0992, $0993   ; Dirt
-    dw $1030, $1031, $1032, $1033   ; Cement
-    dw $186C, $186D, $186E, $186F   ; Coin
-    dw $182D, $582D, $982D, $D82D   ; Outlined air
-    dw $1858, $1859, $185A, $185B   ; Used block
+    dw $00F8, $00F8, $00F8, $00F8   ; 0 Air
+    dw $1868, $1869, $186A, $186B   ; 1 Turnblock
+    dw $1C68, $1C69, $1C6A, $1C6B   ; 2 Throw block
+    dw $1848, $1849, $184A, $184B   ; 3 Turnblock
+    dw $0982, $0983, $0992, $0993   ; 4 Grass
+    dw $0994, $0995, $0992, $0993   ; 5 Dirt
+    dw $1030, $1031, $1032, $1033   ; 6 Cement
+    dw $186C, $186D, $186E, $186F   ; 7 Coin
+    dw $182D, $582D, $982D, $D82D   ; 8 Outlined air
+    dw $1858, $1859, $185A, $185B   ; 9 Used block
+    dw $1C2C, $5C2C, $1C3C, $5C3C   ; A Cloud
+    dw $00F8, $00F8, $00F8, $00F8   ; B Block placeholder
 
 BlockXRoutine:
     dw BlockNone
@@ -21,10 +23,13 @@ BlockXRoutine:
     dw BlockCoin
     dw BlockNone
     dw BlockSolidX
+    dw BlockNone
+    dw BlockSolidX
+    dw BlockSolidX
 
 BlockYRoutine:
     dw BlockNone
-    dw BlockSolidY
+    dw BlockTurnBlock
     dw BlockSolidY
     dw BlockQuestion
     dw BlockSolidY
@@ -32,6 +37,9 @@ BlockYRoutine:
     dw BlockSolidY
     dw BlockCoin
     dw BlockNone
+    dw BlockSolidY
+    dw BlockTopSolid
+    dw BlockSolidY
     dw BlockSolidY
 
 BlockNone:
@@ -43,7 +51,18 @@ BlockCoin:
     bne +
     lda.w #$0000
     sta.b [LayerCollPtr]
-    jsr UpdateTilemapBlock
+    jsl UpdateTilemapBlock
+
+    %ext_entity_slot()
+    lda.w UpdateBlockX
+    asl #3
+    sta.w ExtEntityPosX,x
+    lda.w UpdateBlockY
+    asl #3
+    sta.w ExtEntityPosY,x
+    lda.w #CoinSparkleInit
+    sta.w ExtEntityPtr,x
+
     ldx.w CurrentEntity
 +
     rts
@@ -51,12 +70,63 @@ BlockCoin:
 BlockQuestion:
     lda.b LayerCollDirection
     bpl +
-    lda.w #$0009
+    lda.w #$000B
     sta.b [LayerCollPtr]
-    jsr UpdateTilemapBlock
+    jsl UpdateTilemapBlock
+
+    %ext_entity_slot()
+    lda.w UpdateBlockX
+    asl #3
+    sta.w ExtEntityPosX,x
+    lda.w UpdateBlockY
+    asl #3
+    sta.w ExtEntityPosY,x
+    lda.w #BounceBlockInit
+    sta.w ExtEntityPtr,x
+    lda.b LayerCollPtr
+    sta.w ExtEntityData1,x
+    lda.w #$202A
+    sta.w ExtEntityData2,x
+    lda.w #$0009
+    sta.w ExtEntityData3,x
+
+    ldx.w CurrentEntity
 +
     jmp BlockSolidY
 
+BlockTurnBlock:
+    lda.b LayerCollDirection
+    ;bpl +
+    lda.w #$000B
+    sta.b [LayerCollPtr]
+    jsl UpdateTilemapBlock
+
+    %ext_entity_slot()
+    lda.w UpdateBlockX
+    asl #3
+    sta.w ExtEntityPosX,x
+    lda.w UpdateBlockY
+    asl #3
+    sta.w ExtEntityPosY,x
+    lda.w #BounceBlockInit
+    sta.w ExtEntityPtr,x
+    lda.b LayerCollPtr
+    sta.w ExtEntityData1,x
+    lda.w #$2040
+    sta.w ExtEntityData2,x
+    lda.w #$0001
+    sta.w ExtEntityData3,x
+
+    ldx.w CurrentEntity
++
+    jmp BlockSolidY
+
+BlockTopSolid:
+    lda.b LayerCollDirection
+    bmi +
+    jmp BlockSolidY
++
+    rts
 
 BlockSolidX:
     ldx.w CurrentEntity
