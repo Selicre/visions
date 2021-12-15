@@ -278,6 +278,10 @@ else
     eor #$FFFF : inc
 +
     lsr #7
+    cmp #$0007
+    bmi +
+    lda #$0007
++
     tay
     sep #$20
     dec.w EntityAnimTimer,x
@@ -381,7 +385,8 @@ endif
     clc : adc.w #$0020
     sta.w DmaQueueOffset
 
-    jsl DoCollision
+    ;jsl DoCollision
+    jsl DoEntityCollision
 
     jsr FollowCameraDynamic
 

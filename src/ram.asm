@@ -60,6 +60,7 @@ OamOffsetX: skip $02        ; Offset X for draw routine
 OamOffsetY: skip $02        ; Offset Y for draw routine
 OamPropMask: skip $02       ; Mask to OR each property byte with
 OamFlipMask: skip $02       ; Mask to XOR each property byte with (for sprite flipping)
+OamSizeBit: skip $02        ; When drawing single tiles, tile size to use
 
 ; level data stuff
 

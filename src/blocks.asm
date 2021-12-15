@@ -96,7 +96,7 @@ BlockQuestion:
 
 BlockTurnBlock:
     lda.b LayerCollDirection
-    ;bpl +
+    bpl +
     lda.w #$000B
     sta.b [LayerCollPtr]
     jsl UpdateTilemapBlock

@@ -100,7 +100,7 @@ IrqHandler:
     jmp (IrqPtr)
 
 Brk:
-    stp                 ; todo: add a real crash handler
+    - : bra -               ; todo: add a real crash handler
 
 NoIrq:
     rti
@@ -143,9 +143,10 @@ SprGfx:
 ;; BANK 2 (Sprites)
 org $828000
 
-incsrc "entity/player.asm"
 incsrc "ext_entity/coin_sparkle.asm"
 incsrc "ext_entity/bounce_block.asm"
+incsrc "entity/player.asm"
+incsrc "entity/platform.asm"
 print "Bank 2 usage: $", hex((+) - $828000) : +
 
 org $838000

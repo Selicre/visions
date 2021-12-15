@@ -28,7 +28,6 @@ BounceBlock:
     sta.b Scratch
     lda.w ExtEntityData3,x
     sta.b [Scratch]
-    wdm
     jsl UpdateTilemapBlock
     rtl
 +

@@ -44,6 +44,22 @@ GamemodeLoad:
     sta.w EntityPosX
     sta.w EntityPosY
 
+    lda.w #EntityPlatformInit
+    sta.w EntityPtr+2
+    sta.w EntityPtr+4
+    
+    lda.w #EntityPlatformInit>>16
+    sta.w EntityPtrBank+2
+    sta.w EntityPtrBank+4
+    lda.w #$00C0
+
+    sta.w EntityPosX+2
+    sta.w EntityPosY+2
+
+    sta.w EntityPosY+4
+    lda.w #$00C0-0050
+
+    sta.w EntityPosX+4
 
     ; Upload graphics
     sep #$20
@@ -162,6 +178,7 @@ endif
 ++
     jsr RenderTilemapRow
 .skipY:
+.tryAgain:
     ; Scrolling X
     lda.b CamX
     lsr #3
@@ -180,6 +197,8 @@ endif
     lda.w HorizontalSeam
 ++
     jsr RenderTilemapColumn
+    bra .tryAgain
+
 .skipX:
     rts
 

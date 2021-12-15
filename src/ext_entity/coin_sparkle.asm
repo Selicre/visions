@@ -63,6 +63,7 @@ CoinSparkle:
     beq +
     jsl DrawSmallTile
 +
+    ldx.w CurrentEntity
 
 .end:
     lda.w ExtEntityData0,x
