@@ -36,30 +36,38 @@ GamemodeLoad:
 
     lda.w #EntityPlayerInit
     sta.w EntityPtr
-    
+    ;sta.w EntityPtr+2
+
     lda.w #EntityPlayerInit>>16
     sta.w EntityPtrBank
+    ;sta.w EntityPtrBank+2
     lda.w #$0020
-
     sta.w EntityPosX
     sta.w EntityPosY
 
+    lda.w #$0040
+    ;sta.w EntityPosX+2
+    ;sta.w EntityPosY+2
+
+    ;lda.w #$0001
+    ;sta.w EntityData1+2
+
     lda.w #EntityPlatformInit
-    sta.w EntityPtr+2
-    sta.w EntityPtr+4
+    sta.w EntityPtr+12
+    sta.w EntityPtr+14
     
     lda.w #EntityPlatformInit>>16
-    sta.w EntityPtrBank+2
-    sta.w EntityPtrBank+4
+    sta.w EntityPtrBank+12
+    sta.w EntityPtrBank+14
     lda.w #$00C0
 
-    sta.w EntityPosX+2
-    sta.w EntityPosY+2
+    sta.w EntityPosX+12
+    sta.w EntityPosY+12
 
-    sta.w EntityPosY+4
+    sta.w EntityPosY+14
     lda.w #$00C0-0050
 
-    sta.w EntityPosX+4
+    sta.w EntityPosX+14
 
     ; Upload graphics
     sep #$20
@@ -156,7 +164,13 @@ if 0
 
 endif
     jsr RunEntities
+    jsr CollideEntities
+
+    ldx #$0000
+    jsr FollowCameraDynamic
+
     jsr RunExtEntities
+    jsr RenderEntities
     jsr AnimateGfx
 
     ; Scrolling Y
@@ -230,4 +244,99 @@ NmiMain:
     lda #$0F
     sta.w INIDISP       ; end f-blank
     rep #$20
+    rts
+
+FollowCameraDynamic:
+    lda.w EntityPosX,x
+    sec : sbc.w CamPivot
+    cmp.w #-$000C+1
+    bpl .right
+.left:
+    ; Scroll to the left
+    ; Move the camera pivot (todo: do this smoothly)
+    lda.w EntityPosX,x
+    clc : adc.w #$000C
+    sta.w CamPivot
+    lda.w CamPivotOffset
+    inc #2
+    cmp.w #$0098
+    bmi +
+    lda.w #$0098
++
+    sta.w CamPivotOffset
+    bra .exit
+.right:
+    cmp.w #$000C
+    bmi .exit
+    ; Scroll to the left
+    ; Move the camera pivot (todo: do this smoothly)
+    lda.w EntityPosX,x
+    sec : sbc.w #$000C
+    sta.w CamPivot
+    lda.w CamPivotOffset
+    dec #2
+    cmp.w #$0066
+    bpl +
+    lda.w #$0066
++
+    sta.w CamPivotOffset
+.exit:
+    lda.w CamPivot
+    sec : sbc.w CamPivotOffset
+
+    ; clamp
+    cmp.w CamBoundaryLeft
+    bpl +
+    lda.w CamBoundaryLeft
++
+    cmp.w CamBoundaryRight
+    bmi +
+    lda.w CamBoundaryRight
++
+    sta.b CamX
+
+
+    lda.w EntityCollide,x
+    and.w #%1000
+    ora.w CamShouldScrollUp
+    php
+    ldy.w #$0001
+    lda.w EntityPosY,x
+    sec : sbc.w CamY
+    cmp.w #$0020
+    bpl +
+    plp
+    bra .forceScroll
++
+    plp
+    beq +
+    cmp.w #$007E
+    bpl +
+.forceScroll:
+    clc : adc #$0003
+    cmp.w #$007E
+    bmi +
+    lda.w #$007E
++
+    sty.w CamShouldScrollUp
+    bra ++
++
+    stz.w CamShouldScrollUp
+++
+    cmp.w #$0096
+    bmi +
+    lda.w #$0096
++
+    eor #$FFFF : inc
+    clc : adc.w EntityPosY,x
+
+    cmp.w CamBoundaryTop
+    bpl +
+    lda.w CamBoundaryTop
++
+    cmp.w CamBoundaryBottom
+    bmi +
+    lda.w CamBoundaryBottom
++
+    sta.b CamY
     rts

@@ -30,7 +30,7 @@ BlockXRoutine:
 BlockYRoutine:
     dw BlockNone
     dw BlockTurnBlock
-    dw BlockSolidY
+    dw BlockTreadmill
     dw BlockQuestion
     dw BlockSolidY
     dw BlockSolidY
@@ -127,6 +127,12 @@ BlockTopSolid:
     jmp BlockSolidY
 +
     rts
+
+BlockTreadmill:
+    ldx.w CurrentEntity
+    lda.w #$0200
+    sta.w EntitySurfaceVel,x
+    jmp BlockSolidY
 
 BlockSolidX:
     ldx.w CurrentEntity

@@ -34,8 +34,12 @@ EntityPlayerAnimPeriod:
 EntityPlayerInit:
     lda.w #EntityPlayer
     sta.w EntityPtr,x
+    lda.w #EntityPlayerRender
+    sta.w EntityRenderPtr,x
     lda.w #$0706
     sta.w EntitySize,x
+    lda.w #$0001
+    sta.w EntityPhysics,x
 
 ; A counter that counts up when you have more than $240 speed.
 EntityPlayer_p_meter = EntityData0
@@ -249,25 +253,16 @@ EntityPlayer:
     adc.w #$04D0
     eor #$FFFF : inc
     sta.w EntityVelY,x
+    ;lda.w EntitySurfaceVel,x
+    ;clc : adc.w EntityVelX,x
+    ;sta.w EntityVelX,x
 ..exit:
 
-if 0
-.incr_anim_timer:
-    ; increase timer
-    lda.w EntityVelX,x
-    bne ++
-    lda.w #$07FF
-    bra +++
-++
-    bpl +
-    eor #$FFFF : inc
-+
-    clc : adc.w EntityAnimTimer,x
-+++
-    sta.w EntityAnimTimer,x
-    and.w #$0800
-    sta.b Scratch
-else
+    ;jsl DoEntityCollision
+    rtl
+
+EntityPlayerRender:
+    phk : plb
 .incr_anim_timer:
     lda.w EntityVelX,x
     bne +
@@ -297,10 +292,8 @@ else
     and.w #$0100
     sta.b Scratch
 ..exit:
-endif
     ; Use raised tilemap
     stz.b Scratch+2
-
     ; PLAYER GRAPHICS DMA STUFF
 .do_animation:
     lda.w EntityCollide,x
@@ -308,7 +301,7 @@ endif
     beq ..off_ground
 ..on_ground:
 
-    lda.w .p_speed,x
+    lda.w EntityPlayer_p_speed,x
     bit.w #$0001
     bne ..dash
     lda.b Scratch
@@ -331,7 +324,7 @@ endif
 
 ..off_ground:
     ; check for p-speed
-    lda.w .p_speed,x
+    lda.w EntityPlayer_p_speed,x
     bit.w #$0001
     bne ..dash_jump
     lda.w EntityVelY,x
@@ -348,6 +341,20 @@ endif
     lda.b Scratch+2
     pha
 
+    lda.w EntityData1,x
+    beq +
+    lda.w EntityRender,x
+    ora.w #$0004
+    sta.w EntityRender,x
++
+
+    stz.b Scratch
+    lda.w EntityData1,x
+    beq +
+    lda.w #$0040
+    sta.b Scratch
++
+
     ldx.w DmaQueueOffset
     lda.w EntityPlayerTilePtrs,y
     sta.w DmaQueueAddr+$00,x
@@ -358,12 +365,16 @@ endif
     clc : adc.w #$0200
     sta.w DmaQueueAddr+$18,x
     lda.w #$C000/2
+    clc : adc.w Scratch
     sta.w DmaQueueDest+$00,x
     lda.w #$C200/2
+    clc : adc.w Scratch
     sta.w DmaQueueDest+$08,x
     lda.w #$C040/2
+    clc : adc.w Scratch
     sta.w DmaQueueDest+$10,x
     lda.w #$C240/2
+    clc : adc.w Scratch
     sta.w DmaQueueDest+$18,x
     lda.w #$0040
     sta.w DmaQueueSize+$00,x
@@ -386,9 +397,6 @@ endif
     sta.w DmaQueueOffset
 
     ;jsl DoCollision
-    jsl DoEntityCollision
-
-    jsr FollowCameraDynamic
 
     pla
     bne +
@@ -419,97 +427,6 @@ FollowCameraSimple:
     sec : sbc.w #$0070
     bpl +
     lda #$0000
-+
-    cmp.w CamBoundaryBottom
-    bmi +
-    lda.w CamBoundaryBottom
-+
-    sta.b CamY
-    rts
-
-FollowCameraDynamic:
-    lda.w EntityPosX,x
-    sec : sbc.w CamPivot
-    cmp.w #-$000C+1
-    bpl .right
-.left:
-    ; Scroll to the left
-    ; Move the camera pivot (todo: do this smoothly)
-    lda.w EntityPosX,x
-    clc : adc.w #$000C
-    sta.w CamPivot
-    lda.w CamPivotOffset
-    inc #2
-    cmp.w #$0098
-    bmi +
-    lda.w #$0098
-+
-    sta.w CamPivotOffset
-    bra .exit
-.right:
-    cmp.w #$000C
-    bmi .exit
-    ; Scroll to the left
-    ; Move the camera pivot (todo: do this smoothly)
-    lda.w EntityPosX,x
-    sec : sbc.w #$000C
-    sta.w CamPivot
-    lda.w CamPivotOffset
-    dec #2
-    cmp.w #$0066
-    bpl +
-    lda.w #$0066
-+
-    sta.w CamPivotOffset
-.exit:
-    lda.w CamPivot
-    sec : sbc.w CamPivotOffset
-
-    ; clamp
-    cmp.w CamBoundaryLeft
-    bpl +
-    lda.w CamBoundaryLeft
-+
-    cmp.w CamBoundaryRight
-    bmi +
-    lda.w CamBoundaryRight
-+
-    sta.b CamX
-
-
-    lda.w EntityCollide,x
-    and.w #%1000
-    ora.w CamShouldScrollUp
-    php
-    ldy.w #$0001
-    lda.w EntityPosY,x
-    sec : sbc.w CamY
-    cmp.w #$0020
-    bpl +
-    plp
-    bra .forceScroll
-+
-    plp
-    beq +
-    cmp.w #$007E
-    bpl +
-.forceScroll:
-    clc : adc #$0003
-    sty.w CamShouldScrollUp
-    bra ++
-+
-    stz.w CamShouldScrollUp
-++
-    cmp.w #$0096
-    bmi +
-    lda.w #$0096
-+
-    eor #$FFFF : inc
-    clc : adc.w EntityPosY,x
-
-    cmp.w CamBoundaryTop
-    bpl +
-    lda.w CamBoundaryTop
 +
     cmp.w CamBoundaryBottom
     bmi +

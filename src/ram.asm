@@ -110,7 +110,8 @@ LevelRows: skip $100        ; Offsets to the start of each row (max 128 blocks h
 base $1000
 !EntityCount = 16*2                 ; Amount of bytes in sprite slots
 
-EntityPtr: skip !EntityCount
+EntityPtr: skip !EntityCount        ; Processing subroutine
+EntityRenderPtr: skip !EntityCount  ; Rendering subroutine
 EntityPtrBank: skip !EntityCount
 EntityState = EntityPtrBank+1       ; SMW-like interaction state
 EntityPosX: skip !EntityCount
@@ -121,17 +122,20 @@ EntitySubPosY = EntitySubPos+1
 EntityLastPos: skip !EntityCount    ; Used in collision to determine your last position on either axis
 EntityVelX: skip !EntityCount
 EntityVelY: skip !EntityCount
+EntitySurfaceVel: skip !EntityCount ; treadmill/platform velocity
 EntitySize: skip !EntityCount
 EntityWidth = EntitySize
 EntityHeight = EntitySize+1
 EntityRender: skip !EntityCount     ; flip flags
-EntityCollide: skip !EntityCount    ; bitfield of which blocks the entity is touching (udlr)
+EntityPhysics: skip !EntityCount    ; physics settings for entity. 0 - no physics, 1 - apply velocity, 2 - 
+EntityCollide: skip !EntityCount    ; bitfield of which blocks the entity is touching (udlr), and maybe slopes later
 EntityAnimTimer: skip !EntityCount
 EntityData0: skip !EntityCount
 EntityData1: skip !EntityCount
 EntityData2: skip !EntityCount
 EntityData3: skip !EntityCount
 
+print "Bytes per entity: $", hex(((+)-$1000)/!EntityCount/2) : +
 
 !ExtEntityCount = 32*2
 ExtEntityPtr: skip !ExtEntityCount

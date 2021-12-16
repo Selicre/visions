@@ -1,10 +1,77 @@
 ; Entity manager & helper methods
 
+!uhhh = 0
+macro entity_loop()
+    stz.w CurrentEntity
+    ldx.w CurrentEntity
+.label!uhhh
+endmacro
+
+macro entity_loop_end()
+    ldx.w CurrentEntity
+    inx #2
+    stx.w CurrentEntity
+    cpx.w #!EntityCount
+    bne .label!uhhh
+    !uhhh += 1
+endmacro
+
 RunEntities:
+%entity_loop()
+    lda.w EntityPtr,x
+    bpl .return         ; If less than $8000, skip over this sprite
+    sta.b Scratch+$00
+    lda.w EntityPtrBank,x
+    sta.b Scratch+$02
+    ; Make sure you can rtl here
+    phk : pea .return-1
+    jml [$0000]
+.return:
+    phk : plb
+%entity_loop_end()
+    rts
+
+CollideEntities:
+    ; inline these loops in the future for performance
+%entity_loop()
+    lda.w EntityPtr,x
+    bpl .skip           ; If less than $8000, skip over this sprite
+    stz.w EntityCollide,x
+    stz.w EntitySurfaceVel,x
+    jsr ApplySpeedY     ; Calculate next position
+.skip:
+%entity_loop_end()
+%entity_loop()
+    lda.w EntityPtr,x
+    bpl +               ; If less than $8000, skip over this sprite
+    lda.w EntityPhysics,x
+    beq +               ; If physics not set, skip over this sprite
+    jsr DoEntityCollisionY
+    jsr DoLayerCollisionY
++
+%entity_loop_end()
+%entity_loop()
+    lda.w EntityPtr,x
+    bpl +               ; If less than $8000, skip over this sprite
+    jsr ApplySpeedX     ; Calculate next position
++
+%entity_loop_end()
+%entity_loop()
+    lda.w EntityPtr,x
+    bpl +               ; If less than $8000, skip over this sprite
+    lda.w EntityPhysics,x
+    beq +               ; If physics not set, skip over this sprite
+    jsr DoLayerCollisionX
++
+%entity_loop_end()
+
+    rts
+
+RenderEntities:
     stz.w CurrentEntity
     ldx.w CurrentEntity
 .loop:
-    lda.w EntityPtr,x
+    lda.w EntityRenderPtr,x
     bpl .return         ; If less than $8000, skip over this sprite
     sta.b Scratch+$00
     lda.w EntityPtrBank,x
@@ -21,38 +88,27 @@ RunEntities:
     bne .loop
     rts
 
-ApplySpeed:
-    phb : phk : plb
-    jsr ApplySpeedX
-    jsr ApplySpeedY
-    plb
-    rtl
-DoEntityCollision:
-    phb : phk : plb
-    stz.w EntityCollide
-
-    ; do X first
-    jsr ApplySpeedX
-    jsr DoLayerCollisionX
-    ;jsr DoEntityCollisionX
-
-    ; then Y
-    jsr ApplySpeedY
-    jsr DoLayerCollisionY
-    jsr DoEntityCollisionY
-    plb
-
-    rtl
+; Scratch stuff
+LayerCollPtr = Scratch
+LayerCollPtrEnd = Scratch+3
+LayerCollClampPos = Scratch+5
+LayerCollDirection = Scratch+7
 
 DoEntityCollisionY:
-    lda.w EntityVelY,x
-    bpl +
-    rts
-+
+;    lda.w EntityVelY,x
+;    bpl +
+;    rts
+;+
     ldy.w #$0000
 .loop:
     lda.w EntityPtr,y
     bne +
+    jmp .next
++
+    ; Check Y velocity
+    lda.w EntityVelY,x
+    sec : sbc EntityVelY,y
+    bpl +
     jmp .next
 +
     ; Check X
@@ -79,10 +135,10 @@ DoEntityCollisionY:
     rep #$20
     sta.w Scratch
 
+    wdm
 
-    ; This is all screwed up.
     ; Check if our last pos < their pos
-    lda.w EntityLastPos,y
+    lda.w EntityPosY,y
     sec : sbc.w Scratch
 
     inc : inc
@@ -90,7 +146,7 @@ DoEntityCollisionY:
     cmp.w EntityLastPos,x
     bmi .next
 
-    lda.w EntityPosY,y
+    lda.w EntityLastPos,y
     sec : sbc.w Scratch
 
     dec : dec
@@ -98,40 +154,21 @@ DoEntityCollisionY:
     cmp.w EntityPosY,x
     bpl .next
 
-    inc : inc
 
+    lda.w EntityPosY,y
+    sec : sbc.w Scratch
     sta.w EntityPosY,x
-    ;sep #$20 : lda.w EntitySubPosY,y : sta.w EntitySubPosY,x : rep #$20
+    sep #$20 : lda.w EntitySubPosY,y : sta.w EntitySubPosY,x : rep #$20
     lda.w EntityVelY,y
-    clc : adc #$0100
+    clc : adc.w #$0100
     sta.w EntityVelY,x
     lda.w EntityCollide,x
     ora.w #$0008
     sta.w EntityCollide,x
 
     ; Make sure you also move along
-    lda.w EntityVelX,x
-    pha
-    phy
-
-    lda.w EntityPosX,x
-    sta.w Scratch
-
     lda.w EntityVelX,y
-    sta.w EntityVelX,x
-    jsr ApplySpeedX
-
-    lda.w EntityPosX,x
-    sec : sbc.w Scratch
-
-    clc : adc.w CamPivot
-    sta.w CamPivot
-
-    jsr DoLayerCollisionX
-
-    ply
-    pla
-    sta.w EntityVelX,x
+    sta.w EntitySurfaceVel,x
 
 
 .next:
@@ -146,22 +183,15 @@ DoCollision:
     phb : phk : plb
 
     stz.w EntityCollide
-    ; do X first
+    ; do Y first
+    jsr ApplySpeedY
+    jsr DoLayerCollisionY
+    ; then X
     jsr ApplySpeedX
     jsr DoLayerCollisionX
 
-    ; then Y
-    jsr ApplySpeedY
-    jsr DoLayerCollisionY
-
     plb
     rtl
-
-; Scratch stuff
-LayerCollPtr = Scratch
-LayerCollPtrEnd = Scratch+3
-LayerCollClampPos = Scratch+5
-LayerCollDirection = Scratch+7
 
 DoLayerCollisionX:
     ; set up longptr to block
@@ -169,6 +199,7 @@ DoLayerCollisionX:
     sta.b LayerCollPtr+2
     ; Obtain row pointer
     lda.w EntityVelX,x
+    clc : adc.w EntitySurfaceVel,x
     sta.b LayerCollDirection    ; stash initial speed
     php                         ; keep the N flag
     lda.w EntityWidth,x
@@ -215,6 +246,7 @@ DoLayerCollisionX:
     and.w #$00FF
     eor #$FFFF : inc
     clc : adc.w EntityPosY,x
+    inc
     bpl +
     lda #$0000
 +
@@ -317,20 +349,23 @@ DoLayerCollisionY:
     rts
 
 ApplySpeedX:
+    lda.w EntityVelX,x
+    clc : adc.w EntitySurfaceVel,x
+    sta.b Scratch
     lda.w EntityPosX,x
     sta.w EntityLastPos,x
     sep #$20
     clc
 
     lda.w EntitySubPosX,x
-    adc.w EntityVelX,x
+    adc.b Scratch
     sta.w EntitySubPosX,x
 
     lda.w EntityPosX,x
-    adc.w EntityVelX+1,x
+    adc.b Scratch+1
     sta.w EntityPosX,x
 
-    lda.w EntityVelX+1,x
+    lda.b Scratch+1
     bmi .belowZero
 
     lda.w EntityPosX+1,x

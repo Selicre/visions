@@ -6,6 +6,8 @@ incsrc "lib/header.asm"
 incsrc "ram.asm"
 incsrc "macros.asm"
 
+!Profiler = 0
+
 ;; BANK 0
 
 org $808000
@@ -62,6 +64,12 @@ RunFrame:
     ldx #$0000
     jsr (GamemodePtr,x)
     jsr FillSprites
+if !Profiler
+    sep #$20
+    lda.b #$0F
+    sta.w INIDISP
+    rep #$20
+endif
     stz.b MainRunning
     lda.w AsyncRunning
     beq WaitForNmi
@@ -90,6 +98,13 @@ NmiHandler:
     jsr UploadSprites
     ldx #$0000
     jsr (NmiPtr,x)
+
+if !Profiler
+    sep #$20
+    lda.b #$08
+    sta.w INIDISP
+    rep #$20
+endif
 
     lda #$01FF          ; reset stack
     tcs
