@@ -123,9 +123,20 @@ BlockTurnBlock:
 
 BlockTopSolid:
     lda.b LayerCollDirection
-    bmi +
-    jmp BlockSolidY
+    bmi .exit
+if 0
+    ; check if we need to collide to begin with (TODO: unfuck this)
+    lda.b Scratch+$0B
+    clc : adc.w EntityLastPos,x
+    bpl +
+    lda #$0000
 +
+    lsr #4 : asl
+    cmp.b LayerCollClampPos
+    beq .exit
+endif
+    jmp BlockSolidY
+.exit:
     rts
 
 BlockTreadmill:

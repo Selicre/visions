@@ -83,10 +83,15 @@ GamemodeLoad:
     lda #$01
     sta.w MDMAEN
 
+    ; Upload BG tilemap
+    %vram_dma(0, $80, BgTilemap, $B000/2, $1000)
+    lda #$01
+    sta.w MDMAEN
+
     ; setup level modes
     lda.b #$01
     sta.w BGMODE
-    lda.b #$11
+    lda.b #$13
     sta.w TM
     lda.b #$D1
     sta.w BG1SC
@@ -233,6 +238,21 @@ NmiMain:
     xba
     sta.w BG1VOFS
     rep #$20
+    lda.b BGX
+    sta.w Layer2X
+    sep #$20
+    sta.w BG2HOFS
+    xba
+    sta.w BG2HOFS
+    rep #$20
+    lda.b BGY
+    sta.w Layer2Y
+    dec
+    sep #$20
+    sta.w BG2VOFS
+    xba
+    sta.w BG2VOFS
+    rep #$20
 
     sep #$20
 
@@ -339,4 +359,13 @@ FollowCameraDynamic:
     lda.w CamBoundaryBottom
 +
     sta.b CamY
+
+    lda.b CamX
+    lsr #2
+    sta.b BGX
+    lda.b CamY
+    lsr #3
+    sta.b BGY
+
+
     rts

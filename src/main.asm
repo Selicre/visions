@@ -147,7 +147,7 @@ print "Bank 0 usage: $", hex((+) - $808000) : +
 org TestPal
     dw %0000100001000010
 
-;; BANK 8 (Graphics)
+;; BANK 1 (Graphics)
 org $818000
 
 TestGfx:
@@ -171,6 +171,8 @@ PlayerGfx:
 org $848000
 AnimatedGfx:
     incbin "../anim_gfx.bin"
+BgTilemap:
+    incbin "../bg_tilemap.bin"
 
 org $84FFFF
     db $00

@@ -217,6 +217,7 @@ DoLayerCollisionX:
     sta.b LayerCollClampPos
     sta.w UpdateBlockX
 
+if 0
     ; check if we need to collide to begin with (TODO: unfuck this)
     lda.w Scratch+9
     clc : adc.w EntityLastPos,x
@@ -226,6 +227,7 @@ DoLayerCollisionX:
     lsr #4 : asl
     cmp.b LayerCollClampPos
     beq .exit
+    endif
 
 
     ; Figure out the end block
@@ -287,7 +289,7 @@ DoLayerCollisionY:
     bpl +
     eor #$FFFF : inc
 +
-    sta.b Scratch+9
+    sta.b Scratch+$0B
     clc : adc.w EntityPosY,x
     bpl +
     lda #$0000
@@ -296,8 +298,9 @@ DoLayerCollisionY:
     sta.b LayerCollClampPos
     sta.w UpdateBlockY
 
+;if 0
     ; check if we need to collide to begin with (TODO: unfuck this)
-    lda.b Scratch+9
+    lda.b Scratch+$0B
     clc : adc.w EntityLastPos,x
     bpl +
     lda #$0000
@@ -305,6 +308,7 @@ DoLayerCollisionY:
     lsr #4 : asl
     cmp.b LayerCollClampPos
     beq .exit
+;endif
 
     ldy.b LayerCollClampPos
     lda.w LevelRows,y

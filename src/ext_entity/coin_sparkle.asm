@@ -21,6 +21,7 @@ CoinSparkle:
     sta.w OamOffsetY
     lda.w CoinSparkleTiles,y
     and.w #$00FF
+    ora.w #$2000
     beq +
     jsl DrawSmallTile
 +
@@ -34,6 +35,7 @@ CoinSparkle:
     sta.w OamOffsetY
     lda.w CoinSparkleTiles,y
     and.w #$00FF
+    ora.w #$2000
     beq +
     jsl DrawSmallTile
 +
@@ -47,6 +49,7 @@ CoinSparkle:
     sta.w OamOffsetY
     lda.w CoinSparkleTiles,y
     and.w #$00FF
+    ora.w #$2000
     beq +
     jsl DrawSmallTile
 +
@@ -60,6 +63,7 @@ CoinSparkle:
     sta.w OamOffsetY
     lda.w CoinSparkleTiles,y
     and.w #$00FF
+    ora.w #$2000
     beq +
     jsl DrawSmallTile
 +
