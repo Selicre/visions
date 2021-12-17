@@ -52,6 +52,17 @@ GamemodeLoad:
     ;lda.w #$0001
     ;sta.w EntityData1+2
 
+    lda.w #EntityGaloombaInit
+    sta.w EntityPtr+10
+    
+    lda.w #EntityGaloombaInit>>16
+    sta.w EntityPtrBank+10
+
+    lda.w #$00C0
+    sta.w EntityPosX+10
+    lda.w #$00A0
+    sta.w EntityPosX+10
+
     lda.w #EntityPlatformInit
     sta.w EntityPtr+12
     sta.w EntityPtr+14
@@ -100,6 +111,13 @@ GamemodeLoad:
 
     lda.b #%00000111
     sta.w OBSEL
+
+    ; Fadein stuff
+    lda.b #$BF
+    sta.w CGADSUB
+    lda #$FF
+    sta.w COLDATA
+    sta.w ScreenBrightness
 
     rep #$20
 
@@ -255,6 +273,14 @@ NmiMain:
     rep #$20
 
     sep #$20
+
+    lda.w ScreenBrightness
+    cmp.b #$E0
+    beq +
+    dec
+    sta.w COLDATA
+    sta.w ScreenBrightness
++
 
     lda #$80
     sta.w INIDISP       ; start f-blank

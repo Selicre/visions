@@ -145,7 +145,7 @@ print "Bank 0 usage: $", hex((+) - $808000) : +
 
 ; fix
 org TestPal
-    dw %0000100001000010
+    dw $5B9F
 
 ;; BANK 1 (Graphics)
 org $818000
@@ -162,6 +162,7 @@ incsrc "ext_entity/coin_sparkle.asm"
 incsrc "ext_entity/bounce_block.asm"
 incsrc "entity/player.asm"
 incsrc "entity/platform.asm"
+incsrc "entity/galoomba.asm"
 print "Bank 2 usage: $", hex((+) - $828000) : +
 
 org $838000

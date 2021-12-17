@@ -96,6 +96,7 @@ UpdateBlockY: skip $02
 
 ExtEntitySlot: skip $02
 
+ScreenBrightness: skip $02
 
 base $0E00
 DmaQueue: skip $100         ; Dma queue data (see dma_queue.asm)

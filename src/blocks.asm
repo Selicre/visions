@@ -161,7 +161,10 @@ BlockSolidX:
     clc : adc.b Scratch+9
     sta.w EntityPosX,x
     sep #$20 : stz.w EntitySubPosX,x : rep #$20
+    lda.w EntityVelX,x
+    bpl ++
     stz.w EntityVelX,x
+++
     lda.w EntityCollide,x
     ora.w #$0002
     sta.w EntityCollide,x
@@ -178,7 +181,10 @@ BlockSolidX:
     clc : adc.b Scratch+9
     sta.w EntityPosX,x
     sep #$20 : lda.b #$F0 : sta.w EntitySubPosX,x : rep #$20
+    lda.w EntityVelX,x
+    bmi +
     stz.w EntityVelX,x
++
     lda.w EntityCollide,x
     ora.w #$0001
     sta.w EntityCollide,x
