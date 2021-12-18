@@ -15,10 +15,12 @@ EntityPlatformInit:
     sta.w EntityPtr,x
     lda.w #EntityPlatformRender
     sta.w EntityRenderPtr,x
-    lda.w #$0418
+    lda.w #$0518
     sta.w EntitySize,x
     lda.w #$0000
     sta.w EntityData0,x
+    lda.w #$0002
+    sta.w EntityPhysics,x
 EntityPlatform:
     phk : plb
     ;jsl ApplySpeed

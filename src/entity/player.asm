@@ -40,6 +40,8 @@ EntityPlayerInit:
     sta.w EntitySize,x
     lda.w #$0001
     sta.w EntityPhysics,x
+    lda.w #$0001
+    sta.w EntityInteract,x
 
 ; A counter that counts up when you have more than $240 speed.
 EntityPlayer_p_meter = EntityData0
@@ -49,6 +51,11 @@ EntityPlayer_p_speed = EntityData0+1
 EntityPlayer:
     phk : plb
 .handle_p_speed:
+    lda.w EntityVelX,x
+    bpl +
+    eor #$FFFF : inc
++
+    sta.w Scratch+4       ; old speed value
     ; if !(on_ground || p_speed) then decrement
     lda.w EntityCollide,x
     and.w #%1000

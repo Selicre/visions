@@ -53,15 +53,22 @@ GamemodeLoad:
     ;sta.w EntityData1+2
 
     lda.w #EntityGaloombaInit
+    sta.w EntityPtr+8
     sta.w EntityPtr+10
     
     lda.w #EntityGaloombaInit>>16
+    sta.w EntityPtrBank+8
     sta.w EntityPtrBank+10
+
+    lda.w #$00F0
+    sta.w EntityPosX+8
+    lda.w #$00A0
+    sta.w EntityPosY+8
 
     lda.w #$00C0
     sta.w EntityPosX+10
     lda.w #$00A0
-    sta.w EntityPosX+10
+    sta.w EntityPosY+10
 
     lda.w #EntityPlatformInit
     sta.w EntityPtr+12

@@ -134,6 +134,7 @@ incsrc "blocks.asm"
 incsrc "animated_gfx.asm"
 
 incsrc "entity.asm"
+incsrc "collision.asm"
 incsrc "ext_entity.asm"
 
 TestPal:

@@ -35,7 +35,6 @@ Joypad2Edge: skip $02
 
 OamPtr: skip $02            ; Pointer to the current OAM tile
 HiOamPtr: skip $02          ; Pointer to the high OAM table
-CachedRowPtr: skip $02      ; Pointer to the current cached row
 
 print "DP usage: $", hex(+) : +
 
@@ -98,6 +97,8 @@ ExtEntitySlot: skip $02
 
 ScreenBrightness: skip $02
 
+print "General RAM usage: $", hex(+) : +
+
 base $0E00
 DmaQueue: skip $100         ; Dma queue data (see dma_queue.asm)
 DmaQueueMode = DmaQueue
@@ -128,15 +129,22 @@ EntitySize: skip !EntityCount
 EntityWidth = EntitySize
 EntityHeight = EntitySize+1
 EntityRender: skip !EntityCount     ; flip flags
-EntityPhysics: skip !EntityCount    ; physics settings for entity. 0 - no physics, 1 - apply velocity, 2 - 
-EntityCollide: skip !EntityCount    ; bitfield of which blocks the entity is touching (udlr), and maybe slopes later
+EntityPhysics: skip !EntityCount    ; physics settings bitfield. Bit 0 - collision enabled, bit 1 - collider
+; Collision response bitfield
+; ---- ssss --ep udlr
+; udlr: solid from this side
+; p: hurt player
+; e: destroy entity
+; s: slope angle (not implemented yet)
+EntityCollide: skip !EntityCount
+EntityInteract: skip !EntityCount   ; interaction settings bitfield. Bit 0 - player, bit 1 - bounces enemies away from it
 EntityAnimTimer: skip !EntityCount
-EntityData0: skip !EntityCount
+EntityData0: skip !EntityCount      ; generic entity data
 EntityData1: skip !EntityCount
 EntityData2: skip !EntityCount
 EntityData3: skip !EntityCount
 
-print "Bytes per entity: $", hex(((+)-$1000)/!EntityCount/2) : +
+print "Bytes per entity: $", hex(((+)-EntityPtr)/!EntityCount/2) : +
 
 !ExtEntityCount = 32*2
 ExtEntityPtr: skip !ExtEntityCount
@@ -147,7 +155,7 @@ ExtEntityData1: skip !ExtEntityCount
 ExtEntityData2: skip !ExtEntityCount
 ExtEntityData3: skip !ExtEntityCount
 
-
+print "Bytes per extended entity: $", hex(((+)-ExtEntityPtr)/!ExtEntityCount/2) : +
 
 print "Entity usage: $", hex(+) : +
 
