@@ -108,6 +108,31 @@ DoCollision:
     plb
     rtl
 
+PixelToBlockX:
+    bpl +
+    lda #$0000
++
+    lsr #4 : asl
+    ; clamp to layer bounds
+    cmp.w LevelWidth
+    bmi +
+    lda.w LevelWidth
+    dec #2
++
+    rts
+PixelToBlockY:
+    bpl +
+    lda #$0000
++
+    lsr #4 : asl
+    ; clamp to layer bounds
+    cmp.w LevelHeight
+    bmi +
+    lda.w LevelHeight
+    dec #2
++
+    rts
+
 DoLayerCollisionX:
     ; set up longptr to block
     lda.w #$007F
@@ -125,10 +150,7 @@ DoLayerCollisionX:
 +
     sta.b Scratch+9
     clc : adc.w EntityPosX,x
-    bpl +
-    lda #$0000
-+
-    lsr #4 : asl
+    jsr PixelToBlockX
     sta.b LayerCollClampPos
     sta.w UpdateBlockX
 
@@ -136,10 +158,7 @@ if 0
     ; check if we need to collide to begin with (TODO: unfuck this)
     lda.w Scratch+9
     clc : adc.w EntityLastPos,x
-    bpl +
-    lda #$0000
-+
-    lsr #4 : asl
+    jsr PixelToBlockX
     cmp.b LayerCollClampPos
     beq .exit
     endif
@@ -149,10 +168,7 @@ if 0
     lda.w EntityHeight,x
     and.w #$00FF
     clc : adc.w EntityPosY,x
-    bpl +
-    lda #$0000
-+
-    lsr #4 : asl
+    jsr PixelToBlockY
     tay
     lda.w LevelRows,y
     clc : adc.b LayerCollClampPos
@@ -164,10 +180,7 @@ if 0
     eor #$FFFF : inc
     clc : adc.w EntityPosY,x
     inc
-    bpl +
-    lda #$0000
-+
-    lsr #4 : asl
+    jsr PixelToBlockY
     sta.w UpdateBlockY
     tay
     lda.w LevelRows,y
@@ -206,10 +219,7 @@ DoLayerCollisionY:
 +
     sta.b Scratch+$0B
     clc : adc.w EntityPosY,x
-    bpl +
-    lda #$0000
-+
-    lsr #4 : asl
+    jsr PixelToBlockY
     sta.b LayerCollClampPos
     sta.w UpdateBlockY
 
@@ -217,10 +227,7 @@ DoLayerCollisionY:
     ; check if we need to collide to begin with (TODO: unfuck this)
     lda.b Scratch+$0B
     clc : adc.w EntityLastPos,x
-    bpl +
-    lda #$0000
-+
-    lsr #4 : asl
+    jsr PixelToBlockY
     cmp.b LayerCollClampPos
     beq .exit
 ;endif
@@ -232,10 +239,7 @@ DoLayerCollisionY:
     lda.w EntityWidth,x
     and.w #$00FF
     clc : adc.w EntityPosX,x
-    bpl +
-    lda #$0000
-+
-    lsr #4 : asl
+    jsr PixelToBlockX
     clc : adc.b Scratch+9
     sta.b LayerCollPtrEnd
     ; Figure out the start block
@@ -243,10 +247,7 @@ DoLayerCollisionY:
     and.w #$00FF
     eor #$FFFF : inc
     clc : adc.w EntityPosX,x
-    bpl +
-    lda #$0000
-+
-    lsr #4 : asl
+    jsr PixelToBlockX
     sta.w UpdateBlockX
     clc : adc.b Scratch+9
     sta.b LayerCollPtr

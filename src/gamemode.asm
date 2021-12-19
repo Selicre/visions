@@ -28,6 +28,9 @@ GamemodeLoad:
     lda.w #$0400
     sta.w LevelWidth
 
+    lda.w #$0040
+    sta.w LevelHeight
+
     lda.w #$0000
     sta.w HorizontalSeam
 
@@ -222,7 +225,7 @@ endif
 ++
     jsr RenderTilemapRow
 .skipY:
-.tryAgain:
+;.tryAgain:
     ; Scrolling X
     lda.b CamX
     lsr #3
@@ -241,7 +244,7 @@ endif
     lda.w HorizontalSeam
 ++
     jsr RenderTilemapColumn
-    bra .tryAgain
+    ;bra .tryAgain
 
 .skipX:
     rts
@@ -306,7 +309,7 @@ FollowCameraDynamic:
     bpl .right
 .left:
     ; Scroll to the left
-    ; Move the camera pivot (todo: do this smoothly)
+    ; Move the camera pivot
     lda.w EntityPosX,x
     clc : adc.w #$000C
     sta.w CamPivot
@@ -322,7 +325,7 @@ FollowCameraDynamic:
     cmp.w #$000C
     bmi .exit
     ; Scroll to the left
-    ; Move the camera pivot (todo: do this smoothly)
+    ; Move the camera pivot
     lda.w EntityPosX,x
     sec : sbc.w #$000C
     sta.w CamPivot
@@ -346,8 +349,17 @@ FollowCameraDynamic:
     bmi +
     lda.w CamBoundaryRight
 +
+    sec : sbc.b CamX
+    cmp.w #$0010
+    bmi +
+    lda.w #$0010
++
+    cmp.w #$FFF0
+    bpl +
+    lda.w #$FFF0
++
+    clc : adc.b CamX
     sta.b CamX
-
 
     lda.w EntityCollide,x
     and.w #%1000
@@ -391,6 +403,16 @@ FollowCameraDynamic:
     bmi +
     lda.w CamBoundaryBottom
 +
+    sec : sbc.b CamY
+    cmp.w #$0010
+    bmi +
+    lda.w #$0010
++
+    cmp.w #$FFF0
+    bpl +
+    lda.w #$FFF0
++
+    clc : adc.b CamY
     sta.b CamY
 
     lda.b CamX

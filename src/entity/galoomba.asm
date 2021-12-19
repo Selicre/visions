@@ -97,9 +97,13 @@ EntityGaloombaStunned:
     ; Decelerate if on ground by halving the speed
     lda.w EntityCollide,x
     bit.w #$0008
-    beq +
+    beq .notonground
     lda.w EntityVelX,x
-    cmp #$8000 : ror
+    cmp.w #$8000 : ror
+    cmp.w #$ffff
+    bne +
+    lda.w #$0000    ; clamp to zero if necessary
++
     sta.w EntityVelX,x
     lda.w EntityData0,x     ; last frame velocity
 
@@ -109,7 +113,7 @@ EntityGaloombaStunned:
     %signext()
     asl #4
     sta.w EntityVelY,x
-+
+.notonground
 
     lda.w EntityVelY,x
     sta.w EntityData0,x     ; last frame velocity
