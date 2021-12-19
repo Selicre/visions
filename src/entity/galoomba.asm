@@ -52,12 +52,13 @@ EntityGaloomba:
     beq .notplayer
     lda.w EntityVelY,x
     sec : sbc.w EntityVelY,y
-    bcc .hurtplayer
+    cmp.w #-$0080
+    bpl .hurtplayer
     lda.w #EntityGaloombaStunned
     sta.w EntityPtr,x
     lda.w #-$500
     sta.w EntityVelY,y
-    stz.w EntityVelX,x
+    stz.w EntityAnimTimer,x
     bra +
 .hurtplayer:
     lda.w EntityCollide,y
@@ -91,10 +92,85 @@ EntityGaloomba:
     rtl
 
 EntityGaloombaStunned:
+    phk : plb
+    wdm
+    ; Decelerate if on ground by halving the speed
+    lda.w EntityCollide,x
+    bit.w #$0008
+    beq +
+    lda.w EntityVelX,x
+    cmp #$8000 : ror
+    sta.w EntityVelX,x
+    lda.w EntityData0,x     ; last frame velocity
+
+    lsr #6
+    tay
+    lda.w EntityGaloombaBounceData,y
+    %signext()
+    asl #4
+    sta.w EntityVelY,x
++
+
+    lda.w EntityVelY,x
+    sta.w EntityData0,x     ; last frame velocity
+    cmp.w #$0400
+    bmi +
+    lda.w #$0400
++
+    clc : adc.w #$0030
+    sta.w EntityVelY,x
     lda.w #$8000
     sta.w EntityRender,x
-    inc.w EntityAnimTimer,x
+    lda.w EntityAnimTimer,x
+    inc
+    cmp.w #$01F0
+    bmi +
+    inc
+    cmp.w #$0210
+    bmi +
+    lda.w #EntityGaloombaInit
+    sta.w EntityPtr,x
+    lda.w #$0000
++
+    sta.w EntityAnimTimer,x
+
+    ; run e2e shit
+    ldy.w #$0000
+.e2eloop:
+    jsl FindEntityIntersect
+    bcs .exit
+    lda.w EntityInteract,y
+    bit.w #$0001
+    beq .notplayer
+    ; don't kick instantly
+    lda.w EntityAnimTimer,x
+    cmp.w #$0010
+    bmi ++
+    ; kick
+    stz.w EntityAnimTimer,x
+    lda.w #$FF00
+    sta.w EntityVelY,x
+    lda.w EntityPosX,x
+    sec : sbc.w EntityPosX,y
+    bmi +
+    lda.w #$02E0
+    sta.w EntityVelX,x
+    bra ++
++
+    lda.w #-$02E0
+    sta.w EntityVelX,x
+++
+.notplayer:
+    ; todo: damage other entities
+    iny #2
+    bra .e2eloop
+.exit:
     rtl
+
+EntityGaloombaBounceData:
+    db $00,$00,$00,$00,$FE,$FC,$F8,$EC
+    db $EC,$EC,$E8,$E4,$E0,$DC,$D8,$D4
+    db $D0,$CC,$C8
 
 EntityGaloombaRender:
     lda.w EntityPosX,x
