@@ -2,23 +2,6 @@ GamemodeLoad:
 
     lda.w #NmiMain
     sta.b NmiPtr
-    ; Setup level stuff
-
-    lda.w #LevelData
-    sta.w Scratch
-    lda.w #$007F
-    sta.w Scratch+2
-
-    ldx.w #$0000
-    ldy.w #$0000
--
-    lda.l TestLevelData,x
-    and.w #$00FF
-    sta.b [Scratch],y
-    iny #2
-    inx
-    cpx.w #512*32
-    bne -
 
     lda.w #$2000-$100
     sta.w CamBoundaryRight
@@ -96,11 +79,29 @@ GamemodeLoad:
     lda #$01
     sta.w MDMAEN
 
-    %vram_dma(0, $80, TestGfx, $0000, $4000)
+    rep #$20
+    stz.b Scratch
+    lda.w #$017F
+    ldx.w #TestGfx+11
+    ldy.w #TestGfx_end
+    jsl Lz4Decompress
+    phk : plb
+    sep #$20
+
+    %vram_dma(0, $80, $7F0000, $0000, $4000)
     lda #$01
     sta.w MDMAEN
 
-    %vram_dma(0, $80, SprGfx, $6000, $4000)
+    rep #$20
+    stz.b Scratch
+    lda.w #$017F
+    ldx.w #SprGfx+11
+    ldy.w #SprGfx_end
+    jsl Lz4Decompress
+    phk : plb
+    sep #$20
+
+    %vram_dma(0, $80, $7F0000, $6000, $4000)
     lda #$01
     sta.w MDMAEN
 
@@ -130,6 +131,26 @@ GamemodeLoad:
     sta.w ScreenBrightness
 
     rep #$20
+    ; Setup level stuff
+
+    lda.w #LevelData
+
+    sta.w Scratch
+    lda.w #$007F
+    sta.w Scratch+2
+
+
+    ldx.w #$0000
+    ldy.w #$0000
+-
+    lda.l TestLevelData,x
+    and.w #$00FF
+    sta.b [Scratch],y
+    iny #2
+    inx
+    cpx.w #512*32
+    bne -
+
 
     jsr SetupRowPtrs
     lda #$0000

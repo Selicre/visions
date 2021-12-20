@@ -6,6 +6,23 @@ macro signext()
 ?pos:
 endmacro
 
+macro mvn(src,dest,len)
+    phb
+    ldx.w #<src>
+    ldy.w #<dest>
+    lda.w #<len>-1
+    mvn <dest>>>16, <src>>>16
+    plb
+endmacro
+macro mvp(src,dest,len)
+    phb
+    ldx.w #<src>
+    ldy.w #<dest>
+    lda.w #<len>
+    mvp <dest>>>16, <src>>>16
+    plb
+endmacro
+
 ; State: a8, x16
 macro setup_dma(channel, source, size)
     ; source

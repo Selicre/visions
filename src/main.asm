@@ -47,6 +47,8 @@ Boot:
     sta.w NMITIMEN      ; enable NMI & joypad
     rep #$30
 
+    jsr Lz4UploadRt
+
 InitFrame:
     lda.w #GfxBuffer
     sta.w GfxBufferPtr
@@ -111,11 +113,12 @@ endif
     jmp RunFrame
 
 IrqHandler:
-    bit TIMEUP          ; dummy read
+    phk : plb
+    bit.w TIMEUP        ; dummy read
     jmp (IrqPtr)
 
 Brk:
-    - : bra -               ; todo: add a real crash handler
+    - : bra -           ; todo: add a real crash handler
 
 NoIrq:
     rti
@@ -136,6 +139,7 @@ incsrc "animated_gfx.asm"
 incsrc "entity.asm"
 incsrc "collision.asm"
 incsrc "ext_entity.asm"
+incsrc "lz4.asm"
 
 TestPal:
     incbin "../testpal.bin"
@@ -152,9 +156,11 @@ org TestPal
 org $818000
 
 TestGfx:
-    incbin "../testgfx.bin"
+    incbin "../testgfx.bin.lz4"
+.end:
 SprGfx:
-    incbin "../sprgfx.bin"
+    incbin "../sprgfx.bin.lz4"
+.end:
 
 ;; BANK 2 (Sprites)
 org $828000

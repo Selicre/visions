@@ -188,6 +188,10 @@ if 0
     sta.b LayerCollPtr
 .loop:
     lda.b [LayerCollPtr]
+    cmp.w #$000C
+    bmi +
+    lda.w #$0001
++
     asl
     tax
     jsr (BlockXRoutine,x)
@@ -253,6 +257,10 @@ DoLayerCollisionY:
     sta.b LayerCollPtr
 .loop:
     lda.b [LayerCollPtr]
+    cmp.w #$000C
+    bmi +
+    lda.w #$0001
++
     asl
     tax
     jsr (BlockYRoutine,x)
