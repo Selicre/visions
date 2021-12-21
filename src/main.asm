@@ -141,8 +141,8 @@ incsrc "collision.asm"
 incsrc "ext_entity.asm"
 incsrc "lz4.asm"
 
-TestPal:
-    incbin "../testpal.bin"
+;TestPal:
+;    incbin "../testpal.bin"
 TestLevelData:
     incbin "../level.data"
 
@@ -152,25 +152,25 @@ print "Bank 0 usage: $", hex((+) - $808000) : +
 org TestPal
     dw $5B9F
 
-;; BANK 1 (Graphics)
+
+;; BANK 1 (Sprites)
 org $818000
-
-TestGfx:
-    incbin "../testgfx.bin.lz4"
-.end:
-SprGfx:
-    incbin "../sprgfx.bin.lz4"
-.end:
-
-;; BANK 2 (Sprites)
-org $828000
 
 incsrc "ext_entity/coin_sparkle.asm"
 incsrc "ext_entity/bounce_block.asm"
 incsrc "entity/player.asm"
 incsrc "entity/platform.asm"
 incsrc "entity/galoomba.asm"
-print "Bank 2 usage: $", hex((+) - $828000) : +
+print "Bank 1 usage: $", hex((+) - $818000) : +
+;; BANK 2 (Graphics)
+org $828000
+
+;TestGfx:
+;    incbin "../testgfx.bin.lz4"
+;.end:
+;SprGfx:
+;    incbin "../sprgfx.bin.lz4"
+;.end:
 
 org $838000
 PlayerGfx:
@@ -181,6 +181,3 @@ AnimatedGfx:
     incbin "../anim_gfx.bin"
 BgTilemap:
     incbin "../bg_tilemap.bin"
-
-org $84FFFF
-    db $00

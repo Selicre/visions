@@ -39,21 +39,35 @@ GamemodeLoad:
     ;sta.w EntityData1+2
 
     lda.w #EntityGaloombaInit
+    sta.w EntityPtr+2
+    sta.w EntityPtr+4
+    sta.w EntityPtr+6
     sta.w EntityPtr+8
     sta.w EntityPtr+10
     
     lda.w #EntityGaloombaInit>>16
+    sta.w EntityPtrBank+2
+    sta.w EntityPtrBank+4
+    sta.w EntityPtrBank+6
     sta.w EntityPtrBank+8
     sta.w EntityPtrBank+10
 
     lda.w #$00F0
+    sta.w EntityPosX+2
+    clc : adc.w #$0020
+    sta.w EntityPosX+4
+    clc : adc.w #$0020
+    sta.w EntityPosX+6
+    clc : adc.w #$0020
     sta.w EntityPosX+8
-    lda.w #$00A0
-    sta.w EntityPosY+8
-
-    lda.w #$00C0
+    clc : adc.w #$0020
     sta.w EntityPosX+10
+
     lda.w #$00A0
+    sta.w EntityPosY+2
+    sta.w EntityPosY+4
+    sta.w EntityPosY+6
+    sta.w EntityPosY+8
     sta.w EntityPosY+10
 
     lda.w #EntityPlatformInit
@@ -81,8 +95,8 @@ GamemodeLoad:
 
     rep #$20
     stz.b Scratch
-    lda.w #$017F
-    ldx.w #TestGfx+11
+    lda.w #$827F
+    ldx.w #TestGfx
     ldy.w #TestGfx_end
     jsl Lz4Decompress
     phk : plb
@@ -94,8 +108,8 @@ GamemodeLoad:
 
     rep #$20
     stz.b Scratch
-    lda.w #$017F
-    ldx.w #SprGfx+11
+    lda.w #$827F
+    ldx.w #SprGfx
     ldy.w #SprGfx_end
     jsl Lz4Decompress
     phk : plb

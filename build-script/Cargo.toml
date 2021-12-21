@@ -1,0 +1,12 @@
+[package]
+name = "build-script"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+snesgfx = { path = "snesgfx" }
+quasar = { path = "quasar" }
+image = "0.23"
+lz4 = "1.23"
